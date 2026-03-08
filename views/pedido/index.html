@@ -1,97 +1,130 @@
 <div class="container-fluid">
+    <h4 class="mb-4"><i class="fa-solid fa-rectangle-list"></i> Pedido</h4>
+    <ul class="nav nav-tabs">
 
-    <h4 class="mb-4">Pedido</h4>
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab1">
+                Gerenciamento de Pedido
+            </button>
+        </li>
 
-    <div id="alertaPedido" class="alert d-none"></div>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab2">
+                Status do Pedido
+            </button>
+        </li>
 
-    <div class="card mb-4 border-0">
-        <div class="card-body">
-            <div class="row g-3">
+    </ul>
 
-                <div class="col-md-3">
-                    <label class="form-label">Data</label>
-                    <input type="date" id="dataPedido" class="form-control">
+
+    <div class="tab-content pt-3">
+
+        <div class="tab-pane fade show active" id="tab1">
+
+            <div class="container-fluid">
+
+                <div id="alertaPedido" class="alert d-none"></div>
+
+                <div class="card mb-4 border-0">
+                    <div class="card-body">
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+                                <label class="form-label">Data</label>
+                                <input type="date" id="dataPedido" class="form-control">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Shaper</label>
+                                <select id="id_shaperPedido" name="shaper" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Composição</label>
+                                <select id="id_composicaoPedido" name="composicao" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Variação</label>
+                                <select id="id_variacaoPedido" name="variacao" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Acabamento</label>
+                                <select id="id_acabamentoPedido" name="acabamento" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Tecido</label>
+                                <select id="id_tecidoPedido" name="tecido" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Config. Quilha</label>
+                                <select id="id_configuracaoquilhaPedido" name="configuracaoquilha" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Sistema Quilha</label>
+                                <select id="id_sistemaquilhaPedido" name="sistemaquilha" class="form-control"></select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Cores</label>
+                                <select id="id_cor" class="form-control" multiple></select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Observação</label>
+                                <textarea id="observacaoPedido" class="form-control"></textarea>
+                            </div>
+
+                            <div class="col-12">
+
+                                <button id="btnSubmitPedido" class="btn btn-primary" onclick="cadastrarOuAtualizarPedido()">
+                                    Cadastrar
+                                </button>
+
+                                <button id="btnCancelarPedido" class="btn btn-secondary d-none" onclick="cancelarEdicaoPedido()">
+                                    Cancelar
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-3">
-                    <label class="form-label">Shaper</label>
-                    <select id="id_shaperPedido" name="shaper" class="form-control"></select>
-                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
 
-                <div class="col-md-3">
-                    <label class="form-label">Composição</label>
-                    <select id="id_composicaoPedido" name="composicao" class="form-control"></select>
-                </div>
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Data</th>
+                                <th>Shaper</th>
+                                <th>Observação</th>
+                                <th width="150">Ações</th>
+                            </tr>
+                        </thead>
 
-                <div class="col-md-3">
-                    <label class="form-label">Variação</label>
-                    <select id="id_variacaoPedido" name="variacao" class="form-control"></select>
-                </div>
+                        <tbody id="listaPedidos"></tbody>
 
-                <div class="col-md-3">
-                    <label class="form-label">Acabamento</label>
-                    <select id="id_acabamentoPedido" name="acabamento" class="form-control"></select>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label">Tecido</label>
-                    <select id="id_tecidoPedido" name="tecido" class="form-control"></select>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label">Config. Quilha</label>
-                    <select id="id_configuracaoquilhaPedido" name="configuracaoquilha" class="form-control"></select>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label">Sistema Quilha</label>
-                    <select id="id_sistemaquilhaPedido" name="sistemaquilha" class="form-control"></select>
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label">Cores</label>
-                    <select id="id_cor" class="form-control" multiple></select>
-                </div>
-
-                <div class="col-12">
-                    <label class="form-label">Observação</label>
-                    <textarea id="observacaoPedido" class="form-control"></textarea>
-                </div>
-
-                <div class="col-12">
-
-                    <button id="btnSubmitPedido" class="btn btn-primary" onclick="cadastrarOuAtualizarPedido()">
-                        Cadastrar
-                    </button>
-
-                    <button id="btnCancelarPedido" class="btn btn-secondary d-none" onclick="cancelarEdicaoPedido()">
-                        Cancelar
-                    </button>
-
+                    </table>
                 </div>
 
             </div>
+
+
         </div>
+
+        <div class="tab-pane fade" id="tab2">
+
+            <!-- CONTEÚDO DA SEGUNDA TAB -->
+
+        </div>
+
     </div>
-
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Data</th>
-                    <th>Shaper</th>
-                    <th>Observação</th>
-                    <th width="150">Ações</th>
-                </tr>
-            </thead>
-
-            <tbody id="listaPedidos"></tbody>
-
-        </table>
-    </div>
-
 </div>
 
 <script>
@@ -131,25 +164,45 @@
 
         window.popularSelects = async function () {
 
-            const selects = document.querySelectorAll('.card-body select[name]');
-            const response = await fetch(apiUrlPedido("pedidos"));
+            await carregarSelect("id_shaperPedido", "shapers", "id_shaper", "nome");
+            await carregarSelect("id_composicaoPedido", "composicoes", "id_composicao", "descricao");
+            await carregarSelect("id_variacaoPedido", "variacoes", "id_variacao", "descricao");
+            await carregarSelect("id_acabamentoPedido", "acabamentos", "id_acabamento", "descricao");
+            await carregarSelect("id_tecidoPedido", "tecidos", "id_tecido", "descricao");
+            await carregarSelect("id_configuracaoquilhaPedido", "configuracaoquilhas", "id_configuracaoquilha", "descricao");
+            await carregarSelect("id_sistemaquilhaPedido", "sistemaquilhas", "id_sistemaquilha", "descricao");
+
+        }
+
+        async function carregarSelect(selectId, recurso, idCampo, textoCampo) {
+
+            const response = await fetch(apiUrlPedido(recurso));
             const data = await response.json();
 
-            selects.forEach(select => {
+            const select = document.getElementById(selectId);
+            select.innerHTML = "";
 
-                const fragment = document.createDocumentFragment();
-                select.innerHTML = "";
+            data.forEach(item => {
 
-                data.forEach(pedido => {
+                const option = document.createElement("option");
 
-                    const option = document.createElement("option");
-                    option.value = pedido[`id_${select.name}`];
-                    option.textContent = pedido[select.name];
-                    fragment.appendChild(option);
+                option.value =
+                    item[idCampo] ??
+                    item.id ??
+                    item.id_shaper ??
+                    item.id_composicao ??
+                    item.id_variacao ??
+                    item.id_acabamento ??
+                    item.id_tecido ??
+                    item.id_configuracaoquilha ??
+                    item.id_sistemaquilha;
 
-                });
+                option.textContent =
+                    item[textoCampo] ??
+                    item.nome ??
+                    item.descricao;
 
-                select.appendChild(fragment);
+                select.appendChild(option);
 
             });
 
@@ -166,26 +219,26 @@
             data.forEach(pedido => {
 
                 lista.innerHTML += `
-<tr>
-<td>${pedido.id_pedido}</td>
-<td>${pedido.data}</td>
-<td>${pedido.shaper}</td>
-<td>${pedido.observacao ?? ''}</td>
-<td>
+                    <tr>
+                    <td>${pedido.id_pedido}</td>
+                    <td>${pedido.data}</td>
+                    <td>${pedido.shaper}</td>
+                    <td>${pedido.observacao ?? ''}</td>
+                    <td>
 
-<button class="btn btn-sm btn-warning"
-onclick="preencherEdicaoPedido(${pedido.id_pedido})">
-<i class="fa-solid fa-file-pen"></i>
-</button>
+                    <button class="btn btn-sm btn-warning"
+                    onclick="preencherEdicaoPedido(${pedido.id_pedido})">
+                    <i class="fa-solid fa-file-pen"></i>
+                    </button>
 
-<button class="btn btn-sm btn-danger"
-onclick="deletarPedido(${pedido.id_pedido})">
-<i class="fa-solid fa-trash-can"></i>
-</button>
+                    <button class="btn btn-sm btn-danger"
+                    onclick="deletarPedido(${pedido.id_pedido})">
+                    <i class="fa-solid fa-trash-can"></i>
+                    </button>
 
-</td>
-</tr>
-`;
+                    </td>
+                    </tr>
+                    `;
 
             });
         }

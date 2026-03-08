@@ -29,7 +29,7 @@ if ($recurso === 'login') {
 }
 
 /* =========================
-   VIEW SHAPER (PROTEGIDA)
+   VIEW SHAPER
 ========================= */
 if ($recurso === 'shaper') {
 
@@ -43,7 +43,7 @@ if ($recurso === 'shaper') {
 }
 
 /* =========================
-   VIEW PEDIDO (PROTEGIDA)
+   VIEW PEDIDO
 ========================= */
 if ($recurso === 'pedido') {
 
@@ -63,7 +63,6 @@ if ($recurso === 'api') {
 
     header("Content-Type: application/json");
 
-    // 🔐 Protege API (exceto login)
     if (!isset($_SESSION['user']) && $subRecurso !== 'login') {
         http_response_code(401);
         echo json_encode(["mensagem" => "Não autorizado"]);
@@ -72,7 +71,9 @@ if ($recurso === 'api') {
 
     /* -------- LOGIN -------- */
     if ($subRecurso === 'login') {
+
         require_once 'controllers/AuthController.php';
+
         $controller = new AuthController();
         $controller->login();
         exit;
@@ -80,7 +81,9 @@ if ($recurso === 'api') {
 
     /* -------- LOGOUT -------- */
     if ($subRecurso === 'logout') {
+
         require_once 'controllers/AuthController.php';
+
         $controller = new AuthController();
         $controller->logout();
         exit;
@@ -105,28 +108,101 @@ if ($recurso === 'api') {
         exit;
     }
 
-/* -------- CORES -------- */
-if ($subRecurso === 'cores') {
+    /* -------- CORES -------- */
+    if ($subRecurso === 'cores') {
 
-    require_once 'config/database.php';
-    require_once 'controllers/CorController.php';
+        require_once 'config/database.php';
+        require_once 'controllers/CorController.php';
 
-    $database = new Database();
-    $db = $database->connect();
+        $database = new Database();
+        $db = $database->connect();
 
-    $method = $_SERVER['REQUEST_METHOD'];
+        $method = $_SERVER['REQUEST_METHOD'];
 
-    if ($method === 'POST') {
-        $input = json_decode(file_get_contents("php://input"), true);
-        if (isset($input['_method'])) {
-            $method = strtoupper($input['_method']);
+        if ($method === 'POST') {
+            $input = json_decode(file_get_contents("php://input"), true);
+            if (isset($input['_method'])) {
+                $method = strtoupper($input['_method']);
+            }
         }
+
+        $controller = new CorController($db);
+        $controller->processRequest($method, $id);
+        exit;
     }
 
-    $controller = new CorController($db);
-    $controller->processRequest($method, $id);
-    exit;
-}
+    /* -------- COMPOSICOES -------- */
+    if ($subRecurso === 'composicoes') {
+
+        require_once 'controllers/ComposicaoController.php';
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $controller = new ComposicaoController();
+        $controller->processRequest($method, $id);
+        exit;
+    }
+
+    /* -------- VARIACOES -------- */
+    if ($subRecurso === 'variacoes') {
+
+        require_once 'controllers/VariacaoController.php';
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $controller = new VariacaoController();
+        $controller->processRequest($method, $id);
+        exit;
+    }
+
+    /* -------- ACABAMENTOS -------- */
+    if ($subRecurso === 'acabamentos') {
+
+        require_once 'controllers/AcabamentoController.php';
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $controller = new AcabamentoController();
+        $controller->processRequest($method, $id);
+        exit;
+    }
+
+    /* -------- TECIDOS -------- */
+    if ($subRecurso === 'tecidos') {
+
+        require_once 'controllers/TecidoController.php';
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $controller = new TecidoController();
+        $controller->processRequest($method, $id);
+        exit;
+    }
+
+    /* -------- CONFIGURACAO QUILHA -------- */
+    if ($subRecurso === 'configuracaoquilhas') {
+
+        require_once 'controllers/ConfiguracaoQuilhaController.php';
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $controller = new ConfiguracaoQuilhaController();
+        $controller->processRequest($method, $id);
+        exit;
+    }
+
+    /* -------- SISTEMA QUILHA -------- */
+    if ($subRecurso === 'sistemaquilhas') {
+
+        require_once 'controllers/SistemaQuilhaController.php';
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $controller = new SistemaQuilhaController();
+        $controller->processRequest($method, $id);
+        exit;
+    }
+
     /* -------- PEDIDOS -------- */
     if ($subRecurso === 'pedidos') {
 
@@ -148,7 +224,7 @@ if ($subRecurso === 'cores') {
 }
 
 /* =========================
-   HOME (DASHBOARD)
+   HOME
 ========================= */
 if ($recurso === null) {
 
