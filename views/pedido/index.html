@@ -1,0 +1,314 @@
+<div class="container-fluid">
+
+    <h4 class="mb-4">Pedido</h4>
+
+    <div id="alertaPedido" class="alert d-none"></div>
+
+    <div class="card mb-4 border-0">
+        <div class="card-body">
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">Data</label>
+                    <input type="date" id="dataPedido" class="form-control">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Shaper</label>
+                    <select id="id_shaperPedido" name="shaper" class="form-control"></select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Composição</label>
+                    <select id="id_composicaoPedido" name="composicao" class="form-control"></select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Variação</label>
+                    <select id="id_variacaoPedido" name="variacao" class="form-control"></select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Acabamento</label>
+                    <select id="id_acabamentoPedido" name="acabamento" class="form-control"></select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Tecido</label>
+                    <select id="id_tecidoPedido" name="tecido" class="form-control"></select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Config. Quilha</label>
+                    <select id="id_configuracaoquilhaPedido" name="configuracaoquilha" class="form-control"></select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Sistema Quilha</label>
+                    <select id="id_sistemaquilhaPedido" name="sistemaquilha" class="form-control"></select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Cores</label>
+                    <select id="id_cor" class="form-control" multiple></select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Observação</label>
+                    <textarea id="observacaoPedido" class="form-control"></textarea>
+                </div>
+
+                <div class="col-12">
+
+                    <button id="btnSubmitPedido" class="btn btn-primary" onclick="cadastrarOuAtualizarPedido()">
+                        Cadastrar
+                    </button>
+
+                    <button id="btnCancelarPedido" class="btn btn-secondary d-none" onclick="cancelarEdicaoPedido()">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Shaper</th>
+                    <th>Observação</th>
+                    <th width="150">Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="listaPedidos"></tbody>
+
+        </table>
+    </div>
+
+</div>
+
+<script>
+
+    if (!window.PEDIDO_MODULE_LOADED) {
+
+        window.PEDIDO_MODULE_LOADED = true;
+        window.editIdPedido = null;
+
+        window.BASE_URL = window.location.origin + "/teste";
+
+        function apiUrlPedido(recurso, id = null) {
+            if (id) return `${window.BASE_URL}/api/${recurso}/${id}`;
+            return `${window.BASE_URL}/api/${recurso}`;
+        }
+
+        function mostrarAlertaPedido(msg, tipo = "success") {
+            const alerta = document.getElementById("alertaPedido");
+            alerta.className = `alert alert-${tipo}`;
+            alerta.textContent = msg;
+            alerta.classList.remove("d-none");
+            setTimeout(() => alerta.classList.add("d-none"), 3000);
+        }
+
+        async function popularCores() {
+
+            const response = await fetch(apiUrlPedido("cores"));
+            const data = await response.json();
+
+            const select = document.getElementById("id_cor");
+            select.innerHTML = "";
+
+            data.forEach(cor => {
+                select.innerHTML += `<option value="${cor.id_cor}">${cor.descricao}</option>`;
+            });
+        }
+
+        window.popularSelects = async function () {
+
+            const selects = document.querySelectorAll('.card-body select[name]');
+            const response = await fetch(apiUrlPedido("pedidos"));
+            const data = await response.json();
+
+            selects.forEach(select => {
+
+                const fragment = document.createDocumentFragment();
+                select.innerHTML = "";
+
+                data.forEach(pedido => {
+
+                    const option = document.createElement("option");
+                    option.value = pedido[`id_${select.name}`];
+                    option.textContent = pedido[select.name];
+                    fragment.appendChild(option);
+
+                });
+
+                select.appendChild(fragment);
+
+            });
+
+        }
+
+        window.listarPedidos = async function () {
+
+            const response = await fetch(apiUrlPedido("pedidos"));
+            const data = await response.json();
+
+            const lista = document.getElementById("listaPedidos");
+            lista.innerHTML = "";
+
+            data.forEach(pedido => {
+
+                lista.innerHTML += `
+<tr>
+<td>${pedido.id_pedido}</td>
+<td>${pedido.data}</td>
+<td>${pedido.shaper}</td>
+<td>${pedido.observacao ?? ''}</td>
+<td>
+
+<button class="btn btn-sm btn-warning"
+onclick="preencherEdicaoPedido(${pedido.id_pedido})">
+<i class="fa-solid fa-file-pen"></i>
+</button>
+
+<button class="btn btn-sm btn-danger"
+onclick="deletarPedido(${pedido.id_pedido})">
+<i class="fa-solid fa-trash-can"></i>
+</button>
+
+</td>
+</tr>
+`;
+
+            });
+        }
+
+        window.cadastrarOuAtualizarPedido = async function () {
+
+            const cores = Array.from(
+                document.getElementById("id_cor").selectedOptions
+            ).map(opt => opt.value);
+
+            const bodyData = {
+                data: document.getElementById("dataPedido").value,
+                id_shaper: document.getElementById("id_shaperPedido").value,
+                id_composicao: document.getElementById("id_composicaoPedido").value,
+                id_variacao: document.getElementById("id_variacaoPedido").value,
+                id_acabamento: document.getElementById("id_acabamentoPedido").value,
+                id_tecido: document.getElementById("id_tecidoPedido").value,
+                id_configuracaoquilha: document.getElementById("id_configuracaoquilhaPedido").value,
+                id_sistemaquilha: document.getElementById("id_sistemaquilhaPedido").value,
+                observacao: document.getElementById("observacaoPedido").value,
+                cores: cores
+            };
+
+            let url = apiUrlPedido("pedidos");
+
+            if (window.editIdPedido) {
+                bodyData._method = "PUT";
+                url = apiUrlPedido("pedidos", window.editIdPedido);
+            }
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bodyData)
+            });
+
+            const data = await response.json();
+
+            mostrarAlertaPedido(data.mensagem, response.ok ? "success" : "danger");
+
+            resetFormPedido();
+            listarPedidos();
+        }
+
+        window.preencherEdicaoPedido = async function (id) {
+
+            const response = await fetch(apiUrlPedido("pedidos", id));
+            const pedido = await response.json();
+
+            window.editIdPedido = pedido.id_pedido;
+
+            document.getElementById("dataPedido").value = pedido.data;
+            document.getElementById("id_shaperPedido").value = pedido.id_shaper;
+            document.getElementById("id_composicaoPedido").value = pedido.id_composicao;
+            document.getElementById("id_variacaoPedido").value = pedido.id_variacao;
+            document.getElementById("id_acabamentoPedido").value = pedido.id_acabamento;
+            document.getElementById("id_tecidoPedido").value = pedido.id_tecido;
+            document.getElementById("id_configuracaoquilhaPedido").value = pedido.id_configuracaoquilha;
+            document.getElementById("id_sistemaquilhaPedido").value = pedido.id_sistemaquilha;
+            document.getElementById("observacaoPedido").value = pedido.observacao;
+
+            const selectCores = document.getElementById("id_cor");
+
+            Array.from(selectCores.options).forEach(opt => opt.selected = false);
+
+            if (pedido.cores_ids) {
+
+                const cores = pedido.cores_ids.split(",");
+
+                Array.from(selectCores.options).forEach(opt => {
+                    if (cores.includes(opt.value)) {
+                        opt.selected = true;
+                    }
+                });
+
+            }
+
+            document.getElementById("btnSubmitPedido").textContent = "Atualizar";
+            document.getElementById("btnCancelarPedido").classList.remove("d-none");
+        }
+
+        window.cancelarEdicaoPedido = function () {
+            resetFormPedido();
+        }
+
+        window.resetFormPedido = function () {
+
+            window.editIdPedido = null;
+
+            document.querySelectorAll("#dataPedido,#observacaoPedido")
+                .forEach(el => el.value = "");
+
+            document.querySelectorAll("select")
+                .forEach(el => el.selectedIndex = 0);
+
+            const selectCores = document.getElementById("id_cor");
+            Array.from(selectCores.options).forEach(opt => opt.selected = false);
+
+            document.getElementById("btnSubmitPedido").textContent = "Cadastrar";
+            document.getElementById("btnCancelarPedido").classList.add("d-none");
+        }
+
+        window.deletarPedido = async function (id) {
+
+            if (!confirm("Deseja realmente excluir?")) return;
+
+            const response = await fetch(apiUrlPedido("pedidos", id), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ _method: "DELETE" })
+            });
+
+            const data = await response.json();
+
+            mostrarAlertaPedido(data.mensagem, response.ok ? "success" : "danger");
+
+            listarPedidos();
+        }
+
+        listarPedidos();
+        popularSelects();
+        popularCores();
+
+    }
+
+</script>

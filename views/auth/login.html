@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+
+  <!-- Bootstrap CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+    }
+
+    .left-side {
+      background-image: url('/teste/public/images/loginBackground.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .login-container {
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container-fluid">
+    <div class="row login-container">
+
+      <!-- Coluna Esquerda (Imagem) -->
+      <div class="col-md-6 d-none d-md-block left-side"></div>
+
+      <!-- Coluna Direita (Login) -->
+      <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+
+        <div class="card shadow p-4 pb-5" style="width: 100%; max-width: 400px;">
+
+          <h3 class="text-center mb-4 text-body-tertiary">
+            <i class="fa-solid fa-lock"></i>
+          </h3>
+
+          <!-- Mensagem de erro -->
+          <div id="alerta" class="alert alert-danger d-none"></div>
+
+          <div class="mb-3">
+            <label class="form-label">Usuário</label>
+            <input type="text" id="usuario" class="form-control" placeholder="Digite seu usuário">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Senha</label>
+            <input type="password" id="senha" class="form-control" placeholder="Digite sua senha">
+          </div>
+
+          <div class="d-grid">
+            <button id="btnLogin" class="btn btn-primary" onclick="login()">
+              Entrar
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    async function login() {
+
+      const usuario = document.getElementById("usuario").value;
+      const senha = document.getElementById("senha").value;
+      const btn = document.getElementById("btnLogin");
+      const alerta = document.getElementById("alerta");
+
+      alerta.classList.add("d-none");
+
+      // Spinner no botão
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Entrando...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch("/teste/index.php?url=api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario, senha })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          window.location.href = "/teste/"; // 🔥 AGORA VAI PARA HOME
+        } else {
+          alerta.textContent = data.mensagem;
+          alerta.classList.remove("d-none");
+        }
+
+      } catch (error) {
+        alerta.textContent = "Erro ao conectar com o servidor.";
+        alerta.classList.remove("d-none");
+      }
+
+      btn.innerHTML = "Entrar";
+      btn.disabled = false;
+    }
+
+    // Permitir ENTER para logar
+    document.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        login();
+      }
+    });
+  </script>
+
+</body>
+
+</html>
