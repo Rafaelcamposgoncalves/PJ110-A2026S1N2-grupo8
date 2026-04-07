@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login</title>
 
   <!-- Bootstrap CDN -->
@@ -24,6 +25,15 @@
     .login-container {
       height: 100vh;
     }
+
+    /* Mobile (até 767px) */
+    @media (max-width: 767.98px) {
+      .right-side {
+        background-image: url('/teste/public/images/loginBackground.png');
+        background-size: cover;
+        background-position: center;
+      }
+    }
   </style>
 </head>
 
@@ -36,7 +46,7 @@
       <div class="col-md-6 d-none d-md-block left-side"></div>
 
       <!-- Coluna Direita (Login) -->
-      <div class="col-md-6 d-flex align-items-center justify-content-center bg-light">
+      <div class="col-md-6 d-flex align-items-center justify-content-center bg-light right-side">
 
         <div class="card shadow p-4 pb-5" style="width: 100%; max-width: 400px;">
 

@@ -5,39 +5,25 @@
     <ul class="nav nav-tabs">
 
         <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPedidoStatus">
-                <i class="fa-solid fa-arrows-turn-to-dots"></i>
-                <!-- Mobile -->
-                <span class="d-inline d-md-none"> Status</span>
-                <!-- Desktop -->
-                <span class="d-none d-md-inline"> Status do Pedido</span>
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab1">
+                <i class="fa-solid fa-arrows-turn-to-dots"></i> Status do Pedido
             </button>
         </li>
 
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabGerenciamentoPedido">
-                <i class="fa-solid fa-gears"></i>
-                <!-- Mobile -->
-                <span class="d-inline d-md-none"> Gerenciamento</span>
-                <!-- Desktop -->
-                <span class="d-none d-md-inline"> Gerenciamento de Pedido</span>
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab2">
+                <i class="fa-solid fa-gears"></i> Gerenciamento de Pedido
             </button>
         </li>
 
     </ul>
 
     <div class="tab-content pt-3">
-        <!-- STATUS -->
-        <div class="tab-pane fade show active" id="tabPedidoStatus">
-            <div class="container-fluid">
-                <div class="accordion accordion-flush" id="accordionPanelsStayOpenExample">
 
-                </div>
-            </div>
+        <div class="tab-pane fade show active" id="tab1">
         </div>
 
-        <!-- GERENCIAMENTO -->
-        <div class="tab-pane fade" id="tabGerenciamentoPedido">
+        <div class="tab-pane fade" id="tab2">
 
             <div class="container-fluid">
 
@@ -258,125 +244,27 @@
             data.forEach(pedido => {
 
                 lista.innerHTML += `
-                    <tr>
-                    <td>${pedido.id_pedido}</td>
-                    <td>${pedido.data}</td>
-                    <td>${pedido.shaper}</td>
-                    <td>${pedido.observacao ?? ''}</td>
+<tr>
+<td>${pedido.id_pedido}</td>
+<td>${pedido.data}</td>
+<td>${pedido.shaper}</td>
+<td>${pedido.observacao ?? ''}</td>
 
-                    <td>
-                    <button class="btn btn-sm btn-warning" onclick="preencherEdicaoPedido(${pedido.id_pedido})">
-                    <i class="fa-solid fa-file-pen"></i>
-                    </button>
+<td>
+<button class="btn btn-sm btn-warning" onclick="preencherEdicaoPedido(${pedido.id_pedido})">
+<i class="fa-solid fa-file-pen"></i>
+</button>
 
-                    <button class="btn btn-sm btn-danger" onclick="deletarPedido(${pedido.id_pedido})">
-                    <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                    </td>
+<button class="btn btn-sm btn-danger" onclick="deletarPedido(${pedido.id_pedido})">
+<i class="fa-solid fa-trash-can"></i>
+</button>
+</td>
 
-                    </tr>
-                    `;
+</tr>
+`;
+
             });
-        }
 
-        window.listarPedidosStatus = async function () {
-
-            const response = await fetch(apiUrlPedido("pedidos"));
-            const data = await response.json();
-            console.log(data);
-
-            const lista = document.getElementById("accordionPanelsStayOpenExample");
-            lista.innerHTML = "";
-
-            data.forEach(pedido => {
-
-                // timeline como string
-                let timelineHTML = '<div class="timeline">';
-
-                if (pedido.status) {
-
-                    // separar status e datas
-                    const statusArr = pedido.status.split(",").map(s => s.trim()).reverse();
-                    const datasArr = (pedido.datas_status ?? "").split(",").map(d => d.trim()).reverse();
-                    const observacoesArr = (pedido.observacoes_status ?? "")
-                        .split(",")
-                        .map(o => o.trim())
-                        .reverse();
-
-                    statusArr.forEach((s, i) => {
-                        timelineHTML += `
-
-            <div class="rtimeline">
-                <div class="row">
-                    <div class="col-auto d-none d-md-block">
-                        <span class="badge rounded-pill text-bg-light">${datasArr[i] ?? ""}</span>
-                    </div>
-                    <div class="col-auto circle">
-                        <div></div>
-                    </div>
-                    <div class="col-auto icon">
-                        <i class="fa-solid fa-ellipsis"></i>
-                    </div>
-                    <div class="col col-lg-6">
-                        <div class="card text-bg-light shadow-sm">
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-2 text-body-secondary float-sm-end d-md-none">${datasArr[i] ?? ""}</h6>
-                                <h5 class="card-title">${s}</h5>
-                                <p class="card-text">${observacoesArr[i] ?? ""}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div> <!--timeline end-->
-            `;
-                    });
-
-                } else {
-                    timelineHTML += `
-            <div class="timeline-item">
-                <div class="timeline-date">
-                    <span class="text-muted">—</span>
-                </div>
-                <div class="timeline-line">
-                    <div class="timeline-marker"></div>
-                </div>
-                <div class="timeline-content text-muted">Sem status</div>
-            </div>
-            `;
-                }
-
-                timelineHTML += '</div>';
-
-                // extrair o último usuário da lista usuarios_status (se existir)
-                const usuariosArray = pedido.usuarios_status ? pedido.usuarios_status.split(",").map(u => u.trim()) : [];
-                const ultimoUsuario = usuariosArray.length > 0 ? usuariosArray[0] : ""; // mais recente primeiro
-
-                // inserir no accordion
-                lista.innerHTML += `
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse${pedido.id_pedido}" aria-expanded="true" aria-controls="panelsStayOpen-collapse${pedido.id_pedido}">
-                    <div class="container-fluid">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                ${pedido.id_pedido} - ${pedido.shaper} 
-                                ${ultimoUsuario ? `<small class="text-muted ms-2">(${ultimoUsuario})</small>` : ''}
-                            </div>                      
-                            <div class="col-auto">                      
-                                <span class="badge rounded-pill text-bg-info">${pedido.data}</span>
-                            </div>
-                        </div>
-                    </div>
-                </button>
-            </h2>
-            <div id="panelsStayOpen-collapse${pedido.id_pedido}" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    ${timelineHTML}
-                </div>
-            </div>
-        </div>
-        `;
-            });
         }
 
         window.cadastrarOuAtualizarPedido = async function () {
@@ -499,11 +387,6 @@
             document.getElementById("btnSubmitPedido").textContent = "Atualizar";
             document.getElementById("btnCancelarPedido").classList.remove("d-none");
 
-            document.getElementById("up").scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
         }
 
         window.cancelarEdicaoPedido = function () {
@@ -556,7 +439,6 @@
         }
 
         listarPedidos();
-        listarPedidosStatus();
         popularSelects();
 
     }

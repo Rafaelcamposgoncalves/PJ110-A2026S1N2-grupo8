@@ -67,9 +67,10 @@ class PedidoController {
                         'id_composicao',
                         'id_variacao',
                         'id_acabamento',
-                        'id_tecido',
                         'id_configuracaoquilha',
-                        'id_sistemaquilha'
+                        'id_sistemaquilha',
+                        'tecidos',
+                        'cores'
                     ];
 
                     foreach ($camposObrigatorios as $campo) {
@@ -81,16 +82,18 @@ class PedidoController {
                     }
 
                     $this->pedido->criar(
+
                         $input['data'],
                         $input['id_shaper'],
                         $input['id_composicao'],
                         $input['id_variacao'],
                         $input['id_acabamento'],
-                        $input['id_tecido'],
                         $input['id_configuracaoquilha'],
                         $input['id_sistemaquilha'],
                         $input['observacao'] ?? null,
+                        $input['tecidos'] ?? [],
                         $input['cores'] ?? []
+
                     );
 
                     http_response_code(201);
@@ -101,6 +104,26 @@ class PedidoController {
                 /* ================= ATUALIZAR ================= */
 
                 case 'PUT':
+
+                    $camposObrigatorios = [
+                        'data',
+                        'id_shaper',
+                        'id_composicao',
+                        'id_variacao',
+                        'id_acabamento',
+                        'id_configuracaoquilha',
+                        'id_sistemaquilha',
+                        'tecidos',
+                        'cores'
+                    ];
+
+                    foreach ($camposObrigatorios as $campo) {
+                        if (empty($input[$campo])) {
+                            http_response_code(400);
+                            echo json_encode(["erro" => "Campo obrigatório faltando: $campo"]);
+                            return;
+                        }
+                    }
 
                     if (!$id) {
                         http_response_code(400);
@@ -115,10 +138,10 @@ class PedidoController {
                         $input['id_composicao'] ?? null,
                         $input['id_variacao'] ?? null,
                         $input['id_acabamento'] ?? null,
-                        $input['id_tecido'] ?? null,
                         $input['id_configuracaoquilha'] ?? null,
                         $input['id_sistemaquilha'] ?? null,
                         $input['observacao'] ?? null,
+                        $input['tecidos'] ?? [],
                         $input['cores'] ?? []
                     );
 

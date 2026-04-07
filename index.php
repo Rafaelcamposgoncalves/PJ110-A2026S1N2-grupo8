@@ -29,6 +29,20 @@ if ($recurso === 'login') {
 }
 
 /* =========================
+   VIEW DASHBOARD
+========================= */
+if ($recurso === 'dashboard') {
+
+    if (!isset($_SESSION['user'])) {
+        header("Location: /teste/login");
+        exit;
+    }
+
+    require_once 'views/dashboard/index.html';
+    exit;
+}
+
+/* =========================
    VIEW SHAPER
 ========================= */
 if ($recurso === 'shaper') {
@@ -86,6 +100,22 @@ if ($recurso === 'api') {
 
         $controller = new AuthController();
         $controller->logout();
+        exit;
+    }
+
+    /* -------- USUARIO LOGADO -------- */
+    if ($subRecurso === 'usuario') {
+
+        require_once 'models/Usuario.php';
+
+        $usuarioModel = new Usuario();
+        $usuario = $usuarioModel->buscaUsuario($_SESSION['user']);
+
+        echo json_encode([
+            "usuario" => $usuario['usuario'] ?? $usuario['usuario'],
+            "nome" => $usuario['nome'] ?? $usuario['usuario']
+        ]);
+
         exit;
     }
 
