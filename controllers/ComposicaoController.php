@@ -1,32 +1,132 @@
 <?php
 
-require_once 'config/database.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../models/Composicao.php';
 
 class ComposicaoController {
 
-    private $conn;
+    private $model;
 
     public function __construct() {
+
         $database = new Database();
-        $this->conn = $database->connect();
+        $db = $database->connect();
+
+        $this->model = new Composicao($db);
     }
 
-    public function processRequest($method, $id) {
+    public function processRequest($method, $id = null) {
 
-        if ($method === "GET") {
+        header("Content-Type: application/json; charset=UTF-8");
 
-            if ($id) {
-                $stmt = $this->conn->prepare("SELECT * FROM composicao WHERE id_composicao = ?");
-                $stmt->execute([$id]);
-                echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
-            } else {
+        $inputJSON = file_get_contents("php://input");
+        $input = json_decode($inputJSON, true);
 
-                $stmt = $this->conn->query("SELECT * FROM composicao ORDER BY descricao");
-                echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-            }
-
+        if (!is_array($input)) {
+            $input = $_POST;
         }
 
-    }
+        // 🔥 AJUSTE IMPORTANTE: suporte a DELETE via _method
+        if ($method === 'POST' && isset($input['_method'])) {
+            $method = strtoupper($input['_method']);
+        }
 
+        try {
+
+            switch ($method) {
+
+                case 'GET':
+
+                    if ($id) {
+                        $data = $this->model->buscar($id);
+
+                        if (!$data) {
+                            http_response_code(404);
+                            echo json_encode(["erro" => "Não encontrado"]);
+                            return;
+                        }
+
+                        echo json_encode($data);
+                        return;
+                    }
+
+                    echo json_encode($this->model->listar());
+                    break;
+
+                case 'POST':
+
+                    if (empty($input['descricao'])) {
+                        http_response_code(400);
+                        echo json_encode(["erro" => "Descrição obrigatória"]);
+                        return;
+                    }
+
+                    $ok = $this->model->criar($input['descricao']);
+
+                    if ($ok) {
+                        echo json_encode([
+                            "mensagem" => "Criado com sucesso",
+                            "id" => $this->model->lastInsertId ?? null
+                        ]);
+                    } else {
+                        http_response_code(500);
+                        echo json_encode(["erro" => "Erro ao criar"]);
+                    }
+
+                    break;
+
+                    case 'PUT':
+
+                    if (!$id || empty($input['descricao'])) {
+                        http_response_code(400);
+                        echo json_encode(["erro" => "Dados inválidos"]);
+                        return;
+                    }
+
+                    $ok = $this->model->atualizar($id, $input['descricao']);
+
+                    if ($ok) {
+                        echo json_encode(["mensagem" => "Atualizado com sucesso"]);
+                    } else {
+                        http_response_code(500);
+                        echo json_encode(["erro" => "Erro ao atualizar"]);
+                    }
+
+                    break;
+
+                case 'DELETE':
+
+                    if (!$id) {
+                        http_response_code(400);
+                        echo json_encode(["erro" => "ID não informado"]);
+                        return;
+                    }
+
+                    $ok = $this->model->deletar($id);
+
+                    if ($ok) {
+                        echo json_encode(["mensagem" => "Deletado com sucesso"]);
+                    } else {
+                        http_response_code(500);
+                        echo json_encode(["erro" => "Erro ao deletar"]);
+                    }
+
+                    break;
+
+                default:
+
+                    http_response_code(405);
+                    echo json_encode(["erro" => "Método não permitido"]);
+                    break;
+            }
+
+        } catch (Exception $e) {
+
+            http_response_code(500);
+            echo json_encode([
+                "erro" => "Erro interno",
+                "detalhe" => $e->getMessage()
+            ]);
+        }
+    }
 }
