@@ -1,0 +1,23 @@
+body {
+  height: 100vh;
+  margin: 0;
+}
+
+.left-side {
+  background-image: url("/teste/public/images/loginBackground.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.login-container {
+  height: 100vh;
+}
+
+/* Mobile (até 767px) */
+@media (max-width: 767.98px) {
+  .right-side {
+    background-image: url("/teste/public/images/loginBackground.png");
+    background-size: cover;
+    background-position: center;
+  }
+}

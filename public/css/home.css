@@ -1,0 +1,59 @@
+@media (max-width: 991px) {
+  body {
+    padding-bottom: 70px;
+  }
+}
+
+@media (min-width: 992px) {
+  body {
+    padding-bottom: 0;
+  }
+}
+
+.sidebar {
+  min-height: calc(100vh - 56px);
+  background: #212529;
+}
+
+.sidebar .nav-link {
+  color: #ccc;
+}
+
+.sidebar .nav-link.active {
+  background: #0d6efd;
+  color: white;
+}
+
+.sidebar .nav-link:hover {
+  background: #343a40;
+  color: white;
+}
+
+/* Choices.js ajustes */
+.choices {
+  margin-bottom: 0;
+  height: 32px;
+  z-index: 2;
+}
+
+.choices__inner,
+.choices__input {
+  background-color: #fff;
+  height: 32px;
+  z-index: 0;
+}
+
+.choices__inner {
+  min-height: calc(1.5em + 0.5rem + 2px);
+  padding: 0.3px 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+}
+
+.choice_plus {
+  top: 0;
+  right: 0;
+  z-index: 10;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+}

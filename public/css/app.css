@@ -1,0 +1,9 @@
+/* app.css */
+
+body {
+  overflow-x: hidden;
+}
+
+.nav-bottom {
+  box-shadow: 0 -4px 12px #eee;
+}

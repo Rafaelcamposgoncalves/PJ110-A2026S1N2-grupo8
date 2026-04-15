@@ -1,9 +1,9 @@
 <?php
 
-class Cor {
+class Configuracaoquilha {
 
     private $conn;
-    private $table = "cor";
+    private $table = "configuracaoquilha";
 
     public function __construct($db) {
         $this->conn = $db;
@@ -15,7 +15,7 @@ class Cor {
     public function listar() {
 
         $sql = "
-            SELECT id_cor, descricao 
+            SELECT id_configuracaoquilha, descricao 
             FROM {$this->table}
         ";
 
@@ -31,9 +31,9 @@ class Cor {
     public function buscar($id) {
 
         $sql = "
-            SELECT id_cor, descricao 
+            SELECT id_configuracaoquilha, descricao 
             FROM {$this->table}
-            WHERE id_cor = :id
+            WHERE id_configuracaoquilha = :id
         ";
 
         $stmt = $this->conn->prepare($sql);
@@ -51,7 +51,7 @@ class Cor {
 		$termo = "%{$termo}%"; // para usar no LIKE
 
 		$sql = "
-			SELECT id_cor, descricao
+			SELECT id_configuracaoquilha, descricao
 			FROM {$this->table}
 			WHERE descricao LIKE :termo
 		";
@@ -91,7 +91,7 @@ class Cor {
         $sql = "
             UPDATE {$this->table}
             SET descricao = :descricao
-            WHERE id_cor = :id
+            WHERE id_configuracaoquilha = :id
         ";
 
         $stmt = $this->conn->prepare($sql);
@@ -109,7 +109,7 @@ class Cor {
 
         $sql = "
             DELETE FROM {$this->table}
-            WHERE id_cor = :id
+            WHERE id_configuracaoquilha = :id
         ";
 
         $stmt = $this->conn->prepare($sql);

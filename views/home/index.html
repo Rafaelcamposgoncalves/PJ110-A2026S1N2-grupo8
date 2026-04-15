@@ -15,76 +15,9 @@
   <!-- Choices.js -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 
-  <style>
-    body {
-      overflow-x: hidden;
-    }
-
-    @media (max-width: 991px) {
-      body {
-        padding-bottom: 70px;
-      }
-    }
-
-    @media (min-width: 992px) {
-      body {
-        padding-bottom: 0;
-      }
-    }
-
-    .sidebar {
-      min-height: calc(100vh - 56px);
-      background: #212529;
-    }
-
-    .sidebar .nav-link {
-      color: #ccc;
-    }
-
-    .sidebar .nav-link.active {
-      background: #0d6efd;
-      color: white;
-    }
-
-    .sidebar .nav-link:hover {
-      background: #343a40;
-      color: white;
-    }
-
-    .choices {
-      margin-bottom: 0;
-      height: 32px;
-      z-index: 2;
-    }
-
-    .choices__inner,
-    .choices__input {
-      background-color: #fff;
-      height: 32px;
-      z-index: 0;
-    }
-
-    .choices__inner {
-      min-height: calc(1.5em + .5rem + 2px);
-      padding: 0.3px .5rem;
-      font-size: .875rem;
-      border-radius: .25rem;
-    }
-
-    .choice_plus {
-      top: 0px;
-      right: 0px;
-      z-index: 10;
-      height: 100%;
-      border-radius: 0px 4px 4px 0px;
-    }
-
-    .nav-bottom {
-      box-shadow: 0 -4px 12px #eee;
-    }
-  </style>
-
-  <link rel="stylesheet" href="/teste/css/rtimeline.css">
+  <link rel="stylesheet" href="/teste/public/css/app.css">
+  <link rel="stylesheet" href="/teste/public/css/home.css">
+  <link rel="stylesheet" href="/teste/lib/rtimeline/css/rtimeline.css">
 </head>
 
 <body id="up">
@@ -176,75 +109,10 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
-  <script>
-    let dashboardCarregado = false;
-    let pedidoCarregado = false;
-    let shaperCarregado = false;
+  <script src="/teste/public/js/app.js"></script>
+  <script src="/teste/public/js/home.js"></script>
+  <script src="/teste/public/js/shaper.js"></script>
 
-    async function carregarUsuario() {
-      try {
-        const response = await fetch("/teste/api/usuario");
-        const data = await response.json();
-
-        if (data.nome) {
-          document.getElementById("usuario-logado").innerHTML =
-            '<i class="fa-solid fa-user"></i> ' + data.usuario + ' | ' + data.nome;
-        }
-      } catch (erro) {
-        console.error("Erro ao carregar usuário:", erro);
-      }
-    }
-
-    async function carregarDashboard() {
-      if (dashboardCarregado) return;
-      const response = await fetch("/teste/dashboard");
-      const html = await response.text();
-      const container = document.getElementById("conteudo-dashboard");
-      container.innerHTML = html;
-      executarScripts(container);
-      dashboardCarregado = true;
-    }
-
-    async function carregarPedido() {
-      if (pedidoCarregado) return;
-      const response = await fetch("/teste/pedido");
-      const html = await response.text();
-      const container = document.getElementById("conteudo-pedido");
-      container.innerHTML = html;
-      executarScripts(container);
-      pedidoCarregado = true;
-    }
-
-    async function carregarShaper() {
-      if (shaperCarregado) return;
-      const response = await fetch("/teste/shaper");
-      const html = await response.text();
-      const container = document.getElementById("conteudo-shaper");
-      container.innerHTML = html;
-      executarScripts(container);
-      shaperCarregado = true;
-    }
-
-    function executarScripts(container) {
-      const scripts = container.querySelectorAll("script");
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement("script");
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-      });
-    }
-
-    async function logout() {
-      await fetch("/teste/api/logout", { method: "POST" });
-      window.location.href = "/teste/login";
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      carregarDashboard();
-      carregarUsuario();
-    });
-  </script>
 </body>
 
 </html>
