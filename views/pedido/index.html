@@ -240,341 +240,54 @@
     </div>
 </div>
 
+
+<div class="modal fade" id="modalStatus" tabindex="-1">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-arrows-turn-to-dots"></i> Status do Pedido
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="statusPedidoId">
+                <input type="hidden" id="statusIndex">
+
+                <div class="mb-2">
+                    <label>Status</label>
+                    <input type="text" id="statusDescricao" class="form-control form-control-sm" readonly>
+                </div>
+
+                <div class="mb-2">
+                    <label>Data</label>
+                    <input type="date" id="statusData" class="form-control form-control-sm">
+                </div>
+
+                <div class="mb-2">
+                    <label>Observação</label>
+                    <textarea id="statusObs" class="form-control form-control-sm"></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-sm btn-primary" onclick="salvarStatus()">
+                    Salvar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
 <!-- Script -->
 
 <script>
-    // ===============================
-    // CONTROLE GLOBAL
-    // ===============================
-    let contextoAtual = null;
-    let editIdGenerico = null;
-
-    // ===============================
-    // CONFIG DOS CAMPOS
-    // ===============================
-    const modalConfigs = {
-        composicao: {
-            icon: "<i class=\"fa-solid fa-flask\"></i>",
-            titulo: "Gerenciar Composição",
-            label: "Composição",
-            selectId: "id_composicaoPedido",
-            recurso: "composicoes"
-        },
-        variacao: {
-            icon: "<i class=\"fa-solid fa-sliders\"></i>",
-            titulo: "Gerenciar Variação",
-            label: "Variação",
-            selectId: "id_variacaoPedido",
-            recurso: "variacoes"
-        },
-        acabamento: {
-            icon: "<i class=\"fa-solid fa-brush\"></i>",
-            titulo: "Gerenciar Acabamento",
-            label: "Acabamento",
-            selectId: "id_acabamentoPedido",
-            recurso: "acabamentos"
-        },
-        configQuilha: {
-            icon: "<i class=\"fa-solid fa-sliders\"></i></i>",
-            titulo: "Gerenciar Config. Quilha",
-            label: "Configuração de Quilha",
-            selectId: "id_configuracaoquilhaPedido",
-            recurso: "configuracaoquilhas"
-        },
-        sistemaQuilha: {
-            icon: "<i class=\"fa-solid fa-sitemap\"></i></i>",
-            titulo: "Gerenciar Sistema Quilha",
-            label: "Sistema de Quilha",
-            selectId: "id_sistemaquilhaPedido",
-            recurso: "sistemaquilhas"
-        },
-        cores: {
-            icon: "<i class=\"fa-solid fa-fill-drip\"></i>",
-            titulo: "Gerenciar Cores",
-            label: "Cor",
-            selectId: "id_cor",
-            recurso: "cores"
-        },
-        tecido: {
-            icon: "<i class=\"fa-solid fa-layer-group\"></i>",
-            titulo: "Gerenciar Tecidos",
-            label: "Tecido",
-            selectId: "id_tecidoPedido",
-            recurso: "tecidos"
-        }
-    };
-
-    // ===============================
-    // ABRIR MODAL
-    // ===============================
-    function abrirModalGenerico(tipo) {
-
-        contextoAtual = modalConfigs[tipo];
-        editIdGenerico = null;
-
-        document.querySelector("#modalGenerico .modal-title").innerHTML = contextoAtual.icon + " " + contextoAtual.titulo;
-
-        const input = document.getElementById("modalInput");
-        input.value = "";
-        input.placeholder = contextoAtual.label;
-
-        resetModalState();
-
-        carregarListaModal();
-
-        const modal = new bootstrap.Modal(document.getElementById('modalGenerico'));
-        modal.show();
-    }
-
-    // ===============================
-    // LISTAR
-    // ===============================
-    async function carregarListaModal() {
-
-        const response = await fetch(`${BASE_URL}/api/${contextoAtual.recurso}`);
-        const data = await response.json();
-
-        const lista = document.getElementById("listaComposicoesModal");
-        lista.innerHTML = "";
-
-        data.forEach(item => {
-
-            const id = item.id || Object.values(item)[0];
-            const descricao = item.descricao || item.nome;
-
-            lista.innerHTML += `
-            <tr>
-                <td>${id}</td>
-                <td>${descricao}</td>
-                <td>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="editarItem(${id}, '${descricao}')">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="deletarItem(${id})">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-        });
-    }
-
-    // ===============================
-    // SALVAR / EDITAR
-    // ===============================
-    async function salvarComposicao() {
-
-        const valor = document.getElementById("modalInput").value.trim();
-
-        if (!valor) {
-            alert("Digite algo");
-            return;
-        }
-
-        let url = `${BASE_URL}/api/${contextoAtual.recurso}`;
-        let body = { descricao: valor };
-
-        if (editIdGenerico) {
-            body._method = "PUT";
-            url = `${BASE_URL}/api/${contextoAtual.recurso}/${editIdGenerico}`;
-        }
-
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            alert(data.erro);
-            return;
-        }
-
-        resetModalState();
-
-        carregarListaModal();
-        popularSelects();
-    }
-
-    // ===============================
-    // EDITAR
-    // ===============================
-    function editarItem(id, descricao) {
-
-        editIdGenerico = id;
-
-        document.getElementById("modalInput").value = descricao;
-
-        const btnSalvar = document.getElementById("btnSalvarComposicao");
-        const btnCancelar = document.getElementById("btnCancelarComposicao");
-
-        btnSalvar.textContent = "Editar";
-        btnSalvar.classList.remove("btn-primary");
-        btnSalvar.classList.add("btn-warning");
-
-        btnCancelar.classList.remove("d-none");
-    }
-
-    // ===============================
-    // EXCLUIR
-    // ===============================
-    async function deletarItem(id) {
-
-        if (!confirm("Excluir este item?")) return;
-
-        const response = await fetch(`${BASE_URL}/api/${contextoAtual.recurso}/${id}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ _method: "DELETE" })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            alert(data.erro);
-            return;
-        }
-
-        carregarListaModal();
-        popularSelects();
-    }
-
-    // ===============================
-    // CANCELAR / RESET
-    // ===============================
-    function cancelarEdicaoComposicao() {
-        resetModalState();
-    }
-
-    function resetModalState() {
-
-        editIdGenerico = null;
-
-        document.getElementById("modalInput").value = "";
-
-        const btnSalvar = document.getElementById("btnSalvarComposicao");
-        const btnCancelar = document.getElementById("btnCancelarComposicao");
-
-        btnSalvar.innerHTML = "<i class=\"fa-solid fa-plus\"></i> Cadastrar";
-        btnSalvar.classList.remove("btn-warning");
-        btnSalvar.classList.add("btn-primary");
-
-        btnCancelar.classList.add("d-none");
-    }
-
-
-
-
-
-
-
-
-
-    window.excluirSelecionado = async function (tipo) {
-
-        const map = {
-            composicao: "id_composicaoPedido",
-            variacao: "id_variacaoPedido",
-            acabamento: "id_acabamentoPedido",
-            configQuilha: "id_configuracaoquilhaPedido",
-            sistemaQuilha: "id_sistemaquilhaPedido",
-            cores: "id_cor",
-            tecido: "id_tecidoPedido"
-        };
-
-        const recursoMap = {
-            composicao: "composicoes",
-            variacao: "variacoes",
-            acabamento: "acabamentos",
-            configQuilha: "configuracaoquilhas",
-            sistemaQuilha: "sistemaquilhas",
-            cores: "cores",
-            tecido: "tecidos"
-        };
-
-        const select = document.getElementById(map[tipo]);
-        const id = select.value;
-
-        if (!id) {
-            alert("Selecione um item para excluir");
-            return;
-        }
-
-        if (!confirm("Tem certeza que deseja excluir este item?")) return;
-
-        try {
-
-            const response = await fetch(`${BASE_URL}/api/${recursoMap[tipo]}/${id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ _method: "DELETE" })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                alert(data.erro || "Erro ao excluir");
-                return;
-            }
-
-            alert("Excluído com sucesso");
-
-            // recarrega lista
-            popularSelects();
-
-        } catch (err) {
-            console.error(err);
-            alert("Erro de conexão");
-        }
-    };
-    console.log("VALOR:", valor);
-</script>
-
-
-
-<script>
-
-
-    function abrirShaper() {
-
-        // força recarregar
-        if (typeof carregarShaper === "function") {
-            shaperCarregado = false;
-            carregarShaper().then(() => {
-
-                // 🔥 FORÇA LISTAR SHAPERS
-                if (typeof listarShapers === "function") {
-                    listarShapers();
-                }
-
-            });
-        }
-
-        const triggerEl = document.querySelector('[data-bs-target="#shaper"]');
-
-        if (triggerEl) {
-            const tab = new bootstrap.Tab(triggerEl);
-            tab.show();
-        }
-    }
-
-    document.addEventListener("input", function (e) {
-        if (e.target.classList.contains("is-invalid")) {
-            e.target.classList.remove("is-invalid");
-        }
-    });
-
-    document.addEventListener("change", function (e) {
-        if (e.target.classList.contains("is-invalid")) {
-            e.target.classList.remove("is-invalid");
-        }
-    });
 
     if (!window.PEDIDO_MODULE_LOADED) {
 
@@ -587,7 +300,7 @@
 
         window.BASE_URL = window.location.origin + "/teste";
 
-        function apiUrlPedido(recurso, id = null) {
+        window.apiUrlPedido = function (recurso, id = null) {
             if (id) return `${window.BASE_URL}/api/${recurso}/${id}`;
             return `${window.BASE_URL}/api/${recurso}`;
         }
@@ -703,123 +416,134 @@
 
         window.listarPedidosStatus = async function () {
 
-            const response = await fetch(apiUrlPedido("pedidos"));
-            const data = await response.json();
-            //console.log(data);
+            const container = document.getElementById("accordionPanelsStayOpenExample");
+            container.innerHTML = "";
 
-            const lista = document.getElementById("accordionPanelsStayOpenExample");
-            lista.innerHTML = "";
+            const resPedidos = await fetch(apiUrlPedido("pedidos"));
+            const pedidos = await resPedidos.json();
 
-            data.forEach(pedido => {
+            for (const pedido of pedidos) {
 
-                // timeline como string
+                // BUSCA STATUS REAL (TABELA pedido_status)
+                const resStatus = await fetch(apiUrlPedido("pedidos-status", pedido.id_pedido));
+                const statusList = await resStatus.json();
+
                 let timelineHTML = '<div class="timeline">';
 
-                if (pedido.status) {
+                statusList.forEach((st, i) => {
 
-                    // separar status e datas
-                    const statusArr = pedido.status.split(",").map(s => s.trim()).reverse();
-                    const datasArr = (pedido.datas_status ?? "").split(",").map(d => d.trim()).reverse();
-                    const observacoesArr = (pedido.observacoes_status ?? "")
-                        .split(",")
-                        .map(o => o.trim())
-                        .reverse();
+                    const isMaisRecente = i === 0;
 
-
-                    statusArr.forEach((s, i) => {
-                        timelineHTML += `
-
-            <div class="rtimeline">
-                <div class="row">
-                    <div class="col-auto d-none d-md-block">
-                        <span class="badge rounded-pill text-bg-light">${datasArr[i] ?? ""}</span>
-                    </div>
-                    <div class="col-auto circle">
-                        <div></div>
-                    </div>
-                    <div class="col-auto icon">
-                        <i class="fa-solid fa-ellipsis"></i>
-                    </div>
-                    <div class="col col-lg-6">
-                        <div class="card text-bg-light shadow-sm">
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-2 text-body-secondary float-sm-end d-md-none">${datasArr[i] ?? ""}</h6>
-                                <h5 class="card-title">${s}</h5>
-                                <p class="card-text">${observacoesArr[i] ?? ""}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="editarStatus(${pedido.id_pedido}, ${i})">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-
-                            <button class="btn btn-outline-secondary btn-sm" onclick="excluirStatus(${pedido.id_pedido}, ${i})">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </div> <!--timeline end-->
-            `;
-                    });
-
-
-
-                } else {
                     timelineHTML += `
-            <div class="timeline-item">
-                <div class="timeline-date">
-                    <span class="text-muted">—</span>
-                </div>
-                <div class="timeline-line">
-                    <div class="timeline-marker"></div>
-                </div>
-                <div class="timeline-content text-muted">Sem status</div>
-            </div>
-            `;
-                }
+                <div class="rtimeline">
+                    <div class="row">
 
-                timelineHTML += '</div>';
+                        <!-- DATA -->
+                        <div class="col-auto d-none d-md-block">
+                            <span class="badge rounded-pill text-bg-light">
+                                ${st.data ?? ""}
+                            </span>
+                        </div>
 
-                // extrair o último usuário da lista usuarios_status (se existir)
-                const usuariosArray = pedido.usuarios_status ? pedido.usuarios_status.split(",").map(u => u.trim()) : [];
-                const ultimoUsuario = usuariosArray.length > 0 ? usuariosArray[0] : ""; // mais recente primeiro
+                        <!-- CARD -->
+                        <div class="col col-lg-6">
+                            <div class="card text-bg-light shadow-sm">
+                                <div class="card-body">
 
-                // inserir no accordion
-                lista.innerHTML += `
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse${pedido.id_pedido}" aria-expanded="true" aria-controls="panelsStayOpen-collapse${pedido.id_pedido}">
-                    <div class="container-fluid">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                ${pedido.id_pedido} - ${pedido.shaper} 
-                                ${ultimoUsuario ? `<small class="text-muted ms-2">(${ultimoUsuario})</small>` : ''}
-                            </div>                      
-                            <div class="col-auto">                      
-                                <span class="badge rounded-pill text-bg-info">${pedido.data}</span>
+                                    <h5 class="card-title">
+                                        ${st.descricao}
+                                    </h5>
+
+                                    <p class="card-text">
+                                        ${st.observacao ?? ""}
+                                    </p>
+
+                                </div>
                             </div>
                         </div>
+
+                        <!-- AÇÕES -->
+                        <div class="col-auto">
+                            <div class="btn-group btn-group-sm">
+
+                                <!-- EDITAR -->
+                                <button class="btn btn-outline-secondary js-editar-status"
+                                    data-id="${pedido.id_pedido}"
+                                    data-status-id="${st.id_pedido_status}">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <!-- EXCLUIR (só último status) -->
+                                ${isMaisRecente
+                            ? `
+                                        <button class="btn btn-outline-danger"
+                                            onclick="excluirStatus(${pedido.id_pedido}, ${st.id_pedido_status})">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                        `
+                            : `
+                                        <button class="btn btn-outline-danger" disabled>
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                        `
+                        }
+
+                            </div>
+                        </div>
+
                     </div>
-                </button>
-            </h2>
-            <div id="panelsStayOpen-collapse${pedido.id_pedido}" class="accordion-collapse collapse">
-                <div class="accordion-body">
-                    <div class="text-end">
-                        <button class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-add"></i> Adicionar Status
-                        </button>    
-                    </div>                    
-                    ${timelineHTML}
                 </div>
+            `;
+                });
+
+                timelineHTML += "</div>";
+
+                container.innerHTML += `
+            <div class="accordion-item">
+
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#p${pedido.id_pedido}">
+                        
+                        <div class="container-fluid">
+                            <div class="row align-items-center">
+
+                                <div class="col">
+                                    ${pedido.id_pedido} - ${pedido.shaper}
+                                </div>
+
+                                <div class="col-auto">
+                                    <span class="badge rounded-pill text-bg-info">
+                                        ${pedido.data}
+                                    </span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </button>
+                </h2>
+
+                <div id="p${pedido.id_pedido}" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+
+                        <div class="text-end mb-2">
+                            <button class="btn btn-primary btn-sm"
+                                onclick="abrirModalStatus(${pedido.id_pedido})">
+                                <i class="fa-solid fa-add"></i> Adicionar Status
+                            </button>
+                        </div>
+
+                        ${timelineHTML}
+
+                    </div>
+                </div>
+
             </div>
-        </div>
         `;
-            });
-        }
+            }
+        };
 
         window.cadastrarOuAtualizarPedido = async function () {
 

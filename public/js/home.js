@@ -43,6 +43,11 @@ async function carregarPedido() {
 
   executarScripts(container);
 
+  // 🔥 AGORA INICIALIZA DEPOIS DO HTML EXISTIR
+  if (typeof initPedidoStatus === "function") {
+    initPedidoStatus();
+  }
+
   pedidoCarregado = true;
 }
 

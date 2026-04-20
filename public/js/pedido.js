@@ -60,17 +60,13 @@ const modalConfigs = {
 };
 
 // ===============================
-// BASE URL
+// ABRIR MODAL
 // ===============================
-window.BASE_URL = window.location.origin + "/teste";
-
-// ===============================
-// FUNÇÕES GLOBAIS (IMPORTANTE)
-// ===============================
-
 window.abrirModalGenerico = function (tipo) {
   contextoAtual = modalConfigs[tipo];
   editIdGenerico = null;
+
+  if (!contextoAtual) return;
 
   document.querySelector("#modalGenerico .modal-title").innerHTML =
     contextoAtual.icon + " " + contextoAtual.titulo;
@@ -86,7 +82,12 @@ window.abrirModalGenerico = function (tipo) {
   modal.show();
 };
 
+// ===============================
+// LISTAR
+// ===============================
 async function carregarListaModal() {
+  if (!contextoAtual) return;
+
   const response = await fetch(`${BASE_URL}/api/${contextoAtual.recurso}`);
   const data = await response.json();
 
@@ -99,23 +100,28 @@ async function carregarListaModal() {
 
     lista.innerHTML += `
         <tr>
-            <td>${id}</td>
-            <td>${descricao}</td>
-            <td>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="editarItem(${id}, '${descricao}')">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="deletarItem(${id})">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>
-            </td>
+          <td>${id}</td>
+          <td>${descricao}</td>
+          <td>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-secondary"
+                onclick='editarItem(${id}, ${JSON.stringify(descricao)})'>
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-secondary"
+                onclick="deletarItem(${id})">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
         </tr>
-        `;
+      `;
   });
 }
 
+// ===============================
+// SALVAR / EDITAR
+// ===============================
 window.salvarComposicao = async function () {
   const valor = document.getElementById("modalInput").value.trim();
 
@@ -147,9 +153,12 @@ window.salvarComposicao = async function () {
 
   resetModalState();
   carregarListaModal();
-  popularSelects();
+  if (typeof popularSelects === "function") popularSelects();
 };
 
+// ===============================
+// EDITAR
+// ===============================
 window.editarItem = function (id, descricao) {
   editIdGenerico = id;
 
@@ -159,11 +168,15 @@ window.editarItem = function (id, descricao) {
   const btnCancelar = document.getElementById("btnCancelarComposicao");
 
   btnSalvar.textContent = "Editar";
-  btnSalvar.classList.replace("btn-primary", "btn-warning");
+  btnSalvar.classList.remove("btn-primary");
+  btnSalvar.classList.add("btn-warning");
 
   btnCancelar.classList.remove("d-none");
 };
 
+// ===============================
+// EXCLUIR
+// ===============================
 window.deletarItem = async function (id) {
   if (!confirm("Excluir este item?")) return;
 
@@ -184,14 +197,13 @@ window.deletarItem = async function (id) {
   }
 
   carregarListaModal();
-  popularSelects();
+  if (typeof popularSelects === "function") popularSelects();
 };
 
-window.cancelarEdicaoComposicao = function () {
-  resetModalState();
-};
-
-window.resetModalState = function () {
+// ===============================
+// RESET
+// ===============================
+function resetModalState() {
   editIdGenerico = null;
 
   document.getElementById("modalInput").value = "";
@@ -200,109 +212,124 @@ window.resetModalState = function () {
   const btnCancelar = document.getElementById("btnCancelarComposicao");
 
   btnSalvar.innerHTML = '<i class="fa-solid fa-plus"></i> Cadastrar';
-  btnSalvar.classList.replace("btn-warning", "btn-primary");
+  btnSalvar.classList.remove("btn-warning");
+  btnSalvar.classList.add("btn-primary");
 
   btnCancelar.classList.add("d-none");
+}
+
+window.cancelarEdicaoComposicao = function () {
+  resetModalState();
 };
 
 // ===============================
-// PEDIDO
+// EXCLUIR DIRETO DO SELECT
 // ===============================
+window.excluirSelecionado = async function (tipo) {
+  const map = {
+    composicao: "id_composicaoPedido",
+    variacao: "id_variacaoPedido",
+    acabamento: "id_acabamentoPedido",
+    configQuilha: "id_configuracaoquilhaPedido",
+    sistemaQuilha: "id_sistemaquilhaPedido",
+    cores: "id_cor",
+    tecido: "id_tecidoPedido",
+  };
 
-window.editIdPedido = null;
-let tecidosChoice;
-let coresChoice;
+  const recursoMap = {
+    composicao: "composicoes",
+    variacao: "variacoes",
+    acabamento: "acabamentos",
+    configQuilha: "configuracaoquilhas",
+    sistemaQuilha: "sistemaquilhas",
+    cores: "cores",
+    tecido: "tecidos",
+  };
 
-function apiUrlPedido(recurso, id = null) {
-  return id ? `${BASE_URL}/api/${recurso}/${id}` : `${BASE_URL}/api/${recurso}`;
-}
+  const select = document.getElementById(map[tipo]);
+  const id = select.value;
 
-function mostrarAlertaPedido(msg, tipo = "success") {
-  const alerta = document.getElementById("alertaPedido");
+  if (!id) {
+    alert("Selecione um item para excluir");
+    return;
+  }
 
-  alerta.className = `alert alert-${tipo}`;
-  alerta.innerHTML = msg;
+  if (!confirm("Tem certeza que deseja excluir este item?")) return;
 
-  alerta.classList.remove("d-none");
+  try {
+    const response = await fetch(`${BASE_URL}/api/${recursoMap[tipo]}/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ _method: "DELETE" }),
+    });
 
-  setTimeout(() => alerta.classList.add("d-none"), 4000);
-}
+    const data = await response.json();
 
-window.popularSelects = async function () {
-  await carregarSelect("id_shaperPedido", "shapers", "id_shaper", "nome");
-  await carregarSelect(
-    "id_composicaoPedido",
-    "composicoes",
-    "id_composicao",
-    "descricao",
-  );
-  await carregarSelect(
-    "id_variacaoPedido",
-    "variacoes",
-    "id_variacao",
-    "descricao",
-  );
-  await carregarSelect(
-    "id_acabamentoPedido",
-    "acabamentos",
-    "id_acabamento",
-    "descricao",
-  );
-  await carregarSelect("id_tecidoPedido", "tecidos", "id_tecido", "descricao");
-  await carregarSelect(
-    "id_configuracaoquilhaPedido",
-    "configuracaoquilhas",
-    "id_configuracaoquilha",
-    "descricao",
-  );
-  await carregarSelect(
-    "id_sistemaquilhaPedido",
-    "sistemaquilhas",
-    "id_sistemaquilha",
-    "descricao",
-  );
-  await carregarSelect("id_cor", "cores", "id_cor", "descricao");
+    if (!response.ok) {
+      alert(data.erro || "Erro ao excluir");
+      return;
+    }
 
-  if (tecidosChoice) tecidosChoice.destroy();
-  tecidosChoice = new Choices("#id_tecidoPedido", {
-    removeItemButton: true,
-  });
+    alert("Excluído com sucesso");
 
-  if (coresChoice) coresChoice.destroy();
-  coresChoice = new Choices("#id_cor", {
-    removeItemButton: true,
-  });
+    if (typeof popularSelects === "function") popularSelects();
+  } catch (err) {
+    console.error(err);
+    alert("Erro de conexão");
+  }
 };
 
-async function carregarSelect(selectId, recurso, idCampo, textoCampo) {
-  const response = await fetch(apiUrlPedido(recurso));
-  const data = await response.json();
+// ===============================
+// ABRIR PEDIDO
+// ===============================
+window.abrirPedido = async function () {
+  if (typeof carregarPedido === "function") {
+    window.pedidoCarregado = false;
 
-  const select = document.getElementById(selectId);
-  select.innerHTML = "";
+    await carregarPedido();
 
-  const optionDefault = document.createElement("option");
-  optionDefault.value = "";
-  optionDefault.textContent = "Selecione...";
-  optionDefault.disabled = true;
-  optionDefault.selected = true;
-
-  select.appendChild(optionDefault);
-
-  data.forEach((item) => {
-    const option = document.createElement("option");
-
-    option.value = item[idCampo] ?? item.id;
-    option.textContent = item[textoCampo] ?? item.nome ?? item.descricao;
-
-    select.appendChild(option);
-  });
-}
+    if (typeof listarPedidos === "function") {
+      listarPedidos();
+    }
+  }
+};
 
 // ===============================
-// INIT
+// ABRIR SHAPER
 // ===============================
+window.abrirShaper = async function () {
+  if (typeof carregarShaper === "function") {
+    window.shaperCarregado = false;
 
-document.addEventListener("DOMContentLoaded", () => {
-  popularSelects();
+    await carregarShaper();
+
+    if (typeof listarShapers === "function") {
+      listarShapers();
+    }
+  }
+
+  const triggerEl = document.querySelector('[data-bs-target="#shaper"]');
+
+  if (triggerEl) {
+    const tab = new bootstrap.Tab(triggerEl);
+    tab.show();
+  }
+};
+document.addEventListener("input", function (e) {
+  if (e.target.classList.contains("is-invalid")) {
+    e.target.classList.remove("is-invalid");
+  }
 });
+document.addEventListener("change", function (e) {
+  if (e.target.classList.contains("is-invalid")) {
+    e.target.classList.remove("is-invalid");
+  }
+});
+
+window.initPedido = function () {
+  if (!document.getElementById("listaPedidos")) return;
+
+  listarPedidos();
+  listarPedidosStatus();
+  popularSelects();
+};

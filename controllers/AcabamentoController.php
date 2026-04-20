@@ -120,7 +120,21 @@ class AcabamentoController {
                     break;
             }
 
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
+
+            $codigo = $e->errorInfo[1] ?? null;
+
+            if ($codigo == 1062) {
+
+                preg_match("/for key '(.+?)'/", $e->getMessage(), $matches);
+                $campo = $matches[1] ?? "campo único";
+
+                http_response_code(409);
+                echo json_encode([
+                    "erro" => "Já existe um registro com esse valor ($campo)"
+                ]);
+                return;
+            }
 
             http_response_code(500);
             echo json_encode([
