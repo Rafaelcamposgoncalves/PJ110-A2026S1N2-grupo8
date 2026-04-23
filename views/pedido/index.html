@@ -1,6 +1,6 @@
 <div class="container-fluid">
 
-    <h4 class="mb-4"><i class="fa-solid fa-rectangle-list"></i> Pedido</h4>
+    <h4 class="mb-4"><i class="fa-solid fa-box"></i> Pedido</h4>
 
     <ul class="nav nav-tabs">
 
@@ -191,7 +191,7 @@
 </div>
 
 
-<!-- MODAL GERENCIADOR -->
+<!-- MODAL GERENCIADOR COMPOSIÇÃO, VARIAÇÃO, ETC...-->
 <div class="modal fade" id="modalGenerico" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -240,491 +240,67 @@
     </div>
 </div>
 
-
+<!--MODAL EDITAR STATUS-->
 <div class="modal fade" id="modalStatus" tabindex="-1">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fa-solid fa-arrows-turn-to-dots"></i> Status do Pedido
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body">
-
+                <!-- CAMPOS OCULTOS -->
                 <input type="hidden" id="statusPedidoId">
                 <input type="hidden" id="statusIndex">
+                <input type="hidden" id="statusIdReal"> <!-- 🔥 ESTA LINHA SALVA O STATUS CORRETO -->
 
                 <div class="mb-2">
-                    <label>Status</label>
-                    <input type="text" id="statusDescricao" class="form-control form-control-sm" readonly>
+                    <label class="form-label">Status Sugerido</label>
+                    <input type="text" id="statusDescricao" class="form-control form-control-sm" disabled tabindex="-1">
                 </div>
-
                 <div class="mb-2">
-                    <label>Data</label>
-                    <input type="date" id="statusData" class="form-control form-control-sm">
+                    <label class="form-label">Data e Hora</label>
+                    <input type="datetime-local" id="statusData" class="form-control form-control-sm">
                 </div>
-
                 <div class="mb-2">
-                    <label>Observação</label>
-                    <textarea id="statusObs" class="form-control form-control-sm"></textarea>
+                    <label class="form-label">Observação</label>
+                    <textarea id="statusObs" class="form-control form-control-sm" rows="3"></textarea>
                 </div>
-
             </div>
-
             <div class="modal-footer">
-                <button class="btn btn-sm btn-primary" onclick="salvarStatus()">
-                    Salvar
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="salvarStatusPedido()">
+                    <i class="fa-solid fa-floppy-disk"></i> Salvar Status
                 </button>
             </div>
-
         </div>
     </div>
 </div>
 
 
-<!-- Script -->
-
-<script>
-
-    if (!window.PEDIDO_MODULE_LOADED) {
-
-        window.PEDIDO_MODULE_LOADED = true;
-
-        window.editIdPedido = null;
-
-        let tecidosChoice;
-        let coresChoice;
-
-        window.BASE_URL = window.location.origin + "/teste";
-
-        window.apiUrlPedido = function (recurso, id = null) {
-            if (id) return `${window.BASE_URL}/api/${recurso}/${id}`;
-            return `${window.BASE_URL}/api/${recurso}`;
-        }
-
-        function mostrarAlertaPedido(msg, tipo = "success") {
-
-            const alerta = document.getElementById("alertaPedido");
-
-            alerta.className = `alert alert-${tipo}`;
-
-            alerta.innerHTML = msg;
-
-            alerta.classList.remove("d-none");
-
-            setTimeout(() => alerta.classList.add("d-none"), 4000);
-
-        }
-
-        window.popularSelects = async function () {
-
-            await carregarSelect("id_shaperPedido", "shapers", "id_shaper", "nome");
-            await carregarSelect("id_composicaoPedido", "composicoes", "id_composicao", "descricao");
-            await carregarSelect("id_variacaoPedido", "variacoes", "id_variacao", "descricao");
-            await carregarSelect("id_acabamentoPedido", "acabamentos", "id_acabamento", "descricao");
-            await carregarSelect("id_tecidoPedido", "tecidos", "id_tecido", "descricao");
-            await carregarSelect("id_configuracaoquilhaPedido", "configuracaoquilhas", "id_configuracaoquilha", "descricao");
-            await carregarSelect("id_sistemaquilhaPedido", "sistemaquilhas", "id_sistemaquilha", "descricao");
-            await carregarSelect("id_cor", "cores", "id_cor", "descricao");
-
-            if (tecidosChoice) tecidosChoice.destroy();
-            tecidosChoice = new Choices('#id_tecidoPedido', {
-                removeItemButton: true,
-                searchEnabled: true,
-                placeholder: true,
-                placeholderValue: 'Selecione...',
-                itemSelectText: ''
-            });
-
-            if (coresChoice) coresChoice.destroy();
-            coresChoice = new Choices('#id_cor', {
-                removeItemButton: true,
-                searchEnabled: true,
-                placeholder: true,
-                placeholderValue: 'Selecione...',
-                itemSelectText: ''
-            });
-
-        }
-
-        async function carregarSelect(selectId, recurso, idCampo, textoCampo) {
-
-            const response = await fetch(apiUrlPedido(recurso));
-            const data = await response.json();
-
-            const select = document.getElementById(selectId);
-
-            select.innerHTML = "";
-
-            const optionDefault = document.createElement("option");
-
-            optionDefault.value = "";
-            optionDefault.textContent = "Selecione...";
-            optionDefault.disabled = true;
-            optionDefault.selected = true;
-
-            select.appendChild(optionDefault);
-
-            data.forEach(item => {
-
-                const option = document.createElement("option");
-
-                option.value = item[idCampo] ?? item.id;
-                option.textContent = item[textoCampo] ?? item.nome ?? item.descricao;
-
-                select.appendChild(option);
-
-            });
-
-        }
-
-        window.listarPedidos = async function () {
-
-            const response = await fetch(apiUrlPedido("pedidos"));
-            const data = await response.json();
-
-            const lista = document.getElementById("listaPedidos");
-
-            lista.innerHTML = "";
-
-            data.forEach(pedido => {
-
-                lista.innerHTML += `
-                    <tr>
-                    <td>${pedido.id_pedido}</td>
-                    <td>${pedido.data}</td>
-                    <td>${pedido.shaper}</td>
-                    <td>${pedido.observacao ?? ''}</td>
-
-                    <td>
-                    <button class="btn btn-sm btn-warning" onclick="preencherEdicaoPedido(${pedido.id_pedido})">
-                    <i class="fa-solid fa-file-pen"></i>
-                    </button>
-
-                    <button class="btn btn-sm btn-danger" onclick="deletarPedido(${pedido.id_pedido})">
-                    <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                    </td>
-
-                    </tr>
-                    `;
-            });
-        }
-
-        window.listarPedidosStatus = async function () {
-
-            const container = document.getElementById("accordionPanelsStayOpenExample");
-            container.innerHTML = "";
-
-            const resPedidos = await fetch(apiUrlPedido("pedidos"));
-            const pedidos = await resPedidos.json();
-
-            for (const pedido of pedidos) {
-
-                // BUSCA STATUS REAL (TABELA pedido_status)
-                const resStatus = await fetch(apiUrlPedido("pedidos-status", pedido.id_pedido));
-                const statusList = await resStatus.json();
-
-                let timelineHTML = '<div class="timeline">';
-
-                statusList.forEach((st, i) => {
-
-                    const isMaisRecente = i === 0;
-
-                    timelineHTML += `
-                <div class="rtimeline">
-                    <div class="row">
-
-                        <!-- DATA -->
-                        <div class="col-auto d-none d-md-block">
-                            <span class="badge rounded-pill text-bg-light">
-                                ${st.data ?? ""}
-                            </span>
-                        </div>
-
-                        <!-- CARD -->
-                        <div class="col col-lg-6">
-                            <div class="card text-bg-light shadow-sm">
-                                <div class="card-body">
-
-                                    <h5 class="card-title">
-                                        ${st.descricao}
-                                    </h5>
-
-                                    <p class="card-text">
-                                        ${st.observacao ?? ""}
-                                    </p>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- AÇÕES -->
-                        <div class="col-auto">
-                            <div class="btn-group btn-group-sm">
-
-                                <!-- EDITAR -->
-                                <button class="btn btn-outline-secondary js-editar-status"
-                                    data-id="${pedido.id_pedido}"
-                                    data-status-id="${st.id_pedido_status}">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-
-                                <!-- EXCLUIR (só último status) -->
-                                ${isMaisRecente
-                            ? `
-                                        <button class="btn btn-outline-danger"
-                                            onclick="excluirStatus(${pedido.id_pedido}, ${st.id_pedido_status})">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                        `
-                            : `
-                                        <button class="btn btn-outline-danger" disabled>
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                        `
-                        }
-
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            `;
-                });
-
-                timelineHTML += "</div>";
-
-                container.innerHTML += `
-            <div class="accordion-item">
-
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#p${pedido.id_pedido}">
-                        
-                        <div class="container-fluid">
-                            <div class="row align-items-center">
-
-                                <div class="col">
-                                    ${pedido.id_pedido} - ${pedido.shaper}
-                                </div>
-
-                                <div class="col-auto">
-                                    <span class="badge rounded-pill text-bg-info">
-                                        ${pedido.data}
-                                    </span>
-                                </div>
-
-                            </div>
-                        </div>
-
-                    </button>
-                </h2>
-
-                <div id="p${pedido.id_pedido}" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-
-                        <div class="text-end mb-2">
-                            <button class="btn btn-primary btn-sm"
-                                onclick="abrirModalStatus(${pedido.id_pedido})">
-                                <i class="fa-solid fa-add"></i> Adicionar Status
-                            </button>
-                        </div>
-
-                        ${timelineHTML}
-
-                    </div>
-                </div>
-
+<!--MODAL EXCLUIR STATUS-->
+<div class="modal fade" id="modalStatusExcluir" tabindex="-1">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-regular fa-trash-can"></i> Excluir
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-        `;
-            }
-        };
 
-        window.cadastrarOuAtualizarPedido = async function () {
+            <div class="modal-body">
+                <p>Tem certeza que deseja realmente excluir o status do pedido?</p>
+            </div>
 
-            const camposObrigatorios = [
-                { id: "dataPedido", nome: "Data" },
-                { id: "id_shaperPedido", nome: "Shaper" },
-                { id: "id_composicaoPedido", nome: "Composição" },
-                { id: "id_variacaoPedido", nome: "Variação" },
-                { id: "id_acabamentoPedido", nome: "Acabamento" },
-                { id: "id_configuracaoquilhaPedido", nome: "Config. Quilha" },
-                { id: "id_sistemaquilhaPedido", nome: "Sistema Quilha" }
-            ];
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarExcluir">Sim</button>
+            </div>
 
-            let camposFaltando = [];
-
-            camposObrigatorios.forEach(campo => {
-
-                const el = document.getElementById(campo.id);
-
-                if (!el.value) {
-                    camposFaltando.push(campo.nome);
-                }
-
-            });
-
-            const cores = coresChoice.getValue(true);
-            const tecidos = tecidosChoice.getValue(true);
-
-            if (cores.length === 0) {
-                camposFaltando.push("Cores");
-            }
-
-            if (tecidos.length === 0) {
-                camposFaltando.push("Tecido");
-            }
-
-            if (camposFaltando.length > 0) {
-
-                mostrarAlertaPedido(
-                    "<b>Preencha os seguintes campos:</b><br><span class='badge rounded-pill text-bg-light border secondary-subtle'>" + camposFaltando.join("</span> <span class='badge rounded-pill text-bg-light border secondary-subtle'>"),
-                    "danger"
-                );
-
-                return;
-
-            }
-
-            const bodyData = {
-
-                data: document.getElementById("dataPedido").value,
-                id_shaper: document.getElementById("id_shaperPedido").value,
-                id_composicao: document.getElementById("id_composicaoPedido").value,
-                id_variacao: document.getElementById("id_variacaoPedido").value,
-                id_acabamento: document.getElementById("id_acabamentoPedido").value,
-                id_configuracaoquilha: document.getElementById("id_configuracaoquilhaPedido").value,
-                id_sistemaquilha: document.getElementById("id_sistemaquilhaPedido").value,
-                observacao: document.getElementById("observacaoPedido").value,
-                tecidos: tecidos,
-                cores: cores
-
-            };
-
-            let url = apiUrlPedido("pedidos");
-
-            if (window.editIdPedido) {
-
-                bodyData._method = "PUT";
-                url = apiUrlPedido("pedidos", window.editIdPedido);
-
-            }
-
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(bodyData)
-            });
-
-            const data = await response.json();
-
-            mostrarAlertaPedido(data.mensagem || data.erro || "Erro inesperado", response.ok ? "success" : "danger");
-
-            console.log(data);
-
-            listarPedidos();
-
-        }
-
-        window.preencherEdicaoPedido = async function (id) {
-
-            const response = await fetch(apiUrlPedido("pedidos", id));
-            const pedido = await response.json();
-
-            window.editIdPedido = pedido.id_pedido;
-
-            document.getElementById("dataPedido").value = pedido.data;
-            document.getElementById("id_shaperPedido").value = pedido.id_shaper;
-            document.getElementById("id_composicaoPedido").value = pedido.id_composicao;
-            document.getElementById("id_variacaoPedido").value = pedido.id_variacao;
-            document.getElementById("id_acabamentoPedido").value = pedido.id_acabamento;
-            document.getElementById("id_configuracaoquilhaPedido").value = pedido.id_configuracaoquilha;
-            document.getElementById("id_sistemaquilhaPedido").value = pedido.id_sistemaquilha;
-            document.getElementById("observacaoPedido").value = pedido.observacao;
-
-            tecidosChoice.removeActiveItems();
-            coresChoice.removeActiveItems();
-
-            if (pedido.tecidos_ids) {
-                const tecidos = pedido.tecidos_ids.split(",");
-                tecidosChoice.setChoiceByValue(tecidos);
-            }
-
-            if (pedido.cores_ids) {
-                const cores = pedido.cores_ids.split(",");
-                coresChoice.setChoiceByValue(cores);
-            }
-
-            document.getElementById("btnSubmitPedido").textContent = "Atualizar";
-            document.getElementById("btnCancelarPedido").classList.remove("d-none");
-
-            document.getElementById("up").scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
-        }
-
-        window.cancelarEdicaoPedido = function () {
-            resetFormPedido();
-        }
-
-        window.deletarPedido = async function (id) {
-
-            if (!confirm("Deseja realmente excluir este pedido?")) return;
-
-            const response = await fetch(apiUrlPedido("pedidos", id), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ _method: "DELETE" })
-            });
-
-            const data = await response.json();
-
-            mostrarAlertaPedido(
-                data.mensagem || data.erro || "Erro ao excluir",
-                response.ok ? "success" : "danger"
-            );
-
-            listarPedidos();
-
-        }
-
-        window.resetFormPedido = function () {
-
-            window.editIdPedido = null;
-
-            document.getElementById("dataPedido").value = "";
-            document.getElementById("observacaoPedido").value = "";
-
-            document.getElementById("id_shaperPedido").selectedIndex = 0;
-            document.getElementById("id_composicaoPedido").selectedIndex = 0;
-            document.getElementById("id_variacaoPedido").selectedIndex = 0;
-            document.getElementById("id_acabamentoPedido").selectedIndex = 0;
-            document.getElementById("id_configuracaoquilhaPedido").selectedIndex = 0;
-            document.getElementById("id_sistemaquilhaPedido").selectedIndex = 0;
-
-            tecidosChoice.removeActiveItems();
-            coresChoice.removeActiveItems();
-
-            document.getElementById("btnSubmitPedido").textContent = "Cadastrar";
-            document.getElementById("btnCancelarPedido").classList.add("d-none");
-
-        }
-
-        listarPedidos();
-        listarPedidosStatus();
-        popularSelects();
-
-    }
-
-</script>
+        </div>
+    </div>
+</div>

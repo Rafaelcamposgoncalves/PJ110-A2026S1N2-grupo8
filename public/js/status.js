@@ -32,17 +32,31 @@ async function listarStatus() {
         <td>${s.id}</td>
         <td>${s.descricao}</td>
         <td>${s.ordem}</td>
-        <td>
-          <button onclick='editarStatus(${JSON.stringify(s)})'>Editar</button>
-          <button onclick='deletarStatus(${s.id})'>Excluir</button>
-        </td>
-      </tr>
+<td>
+  <div class="btn-group btn-group-sm">
+
+    <button class="btn btn-outline-secondary"
+      onclick='editarStatus(${JSON.stringify(s)})'>
+      <i class="fa-solid fa-pen"></i>
+    </button>
+
+    <button class="btn btn-outline-danger"
+      onclick='deletarStatus(${s.id})'>
+      <i class="fa-solid fa-trash"></i>
+    </button>
+
+  </div>
+</td>
     `;
   });
 }
-async function salvarStatus() {
+window.salvarStatusBase = async function () {
+  console.log("clicou salvar");
   const descricao = document.getElementById("descricao").value;
   const ordem = document.getElementById("ordem").value;
+
+  console.log("descricao:", descricao);
+  console.log("ordem:", ordem);
 
   let body = { descricao, ordem };
   let url = apiStatus();
@@ -64,7 +78,7 @@ async function salvarStatus() {
   document.getElementById("ordem").value = "";
 
   listarStatus();
-}
+};
 function editarStatus(s) {
   window.editIdStatus = s.id;
 

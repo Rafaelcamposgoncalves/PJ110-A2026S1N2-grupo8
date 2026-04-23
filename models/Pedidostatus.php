@@ -26,7 +26,7 @@ class PedidoStatus {
             FROM pedido_status ps
             JOIN status s ON s.id_status = ps.id_status
             WHERE ps.id_pedido = :id
-            ORDER BY s.ordem DESC, ps.data DESC
+            ORDER BY ps.id_pedido_status DESC
         ";
 
         $stmt = $this->conn->prepare($sql);
@@ -39,50 +39,46 @@ class PedidoStatus {
     /* =========================
        BUSCAR POR ID
     ========================= */
-    public function buscar($id) {
+ public function buscar($id) {
 
-        $sql = "
-            SELECT 
-                ps.id_pedido_status,
-                ps.id_pedido,
-                ps.id_status,
-                s.descricao,
-                s.ordem,
-                ps.data,
-                ps.observacao
-            FROM pedido_status ps
-            JOIN status s ON s.id_status = ps.id_status
-            WHERE ps.id_pedido = :id
-            ORDER BY s.ordem DESC, ps.data DESC
-        ";
+    $sql = "
+        SELECT 
+            ps.id_pedido_status,
+            ps.id_pedido,
+            ps.id_status,
+            s.descricao,
+            s.ordem,
+            ps.data,
+            ps.observacao
+        FROM pedido_status ps
+        JOIN status s ON s.id_status = ps.id_status
+        WHERE ps.id_pedido_status = :id
+    ";
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
 
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
 
     /* =========================
        CRIAR
     ========================= */
-    public function criar($idPedido, $idStatus, $data, $observacao = null) {
-
-        $sql = "
-            INSERT INTO {$this->table}
-            (id_pedido, id_status, data, observacao)
-            VALUES (:id_pedido, :id_status, :data, :observacao)
-        ";
-
+    public function criar($idPedido, $idStatus, $idUsuario, $data, $observacao = null) {
+        $sql = " INSERT INTO {$this->table} (id_pedido, id_status, id_usuario, data, observacao) 
+                VALUES (:id_pedido, :id_status, :id_usuario, :data, :observacao) ";
+        
         $stmt = $this->conn->prepare($sql);
-
         $stmt->bindParam(':id_pedido', $idPedido, PDO::PARAM_INT);
         $stmt->bindParam(':id_status', $idStatus, PDO::PARAM_INT);
+        $stmt->bindParam(':id_usuario', $idUsuario, PDO::PARAM_INT); // 🔥 NOVO
         $stmt->bindParam(':data', $data);
         $stmt->bindParam(':observacao', $observacao);
-
+        
         return $stmt->execute();
     }
+
 
     /* =========================
        ATUALIZAR
@@ -92,7 +88,6 @@ class PedidoStatus {
         $sql = "
             UPDATE {$this->table}
             SET 
-                id_status = :id_status,
                 data = :data,
                 observacao = :observacao
             WHERE id_pedido_status = :id
@@ -101,7 +96,6 @@ class PedidoStatus {
         $stmt = $this->conn->prepare($sql);
 
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->bindParam(':id_status', $idStatus, PDO::PARAM_INT);
         $stmt->bindParam(':data', $data);
         $stmt->bindParam(':observacao', $observacao);
 
@@ -123,4 +117,18 @@ class PedidoStatus {
 
         return $stmt->execute();
     }
+
+public function deletarPorPedidoStatus($idStatusPedido)
+{
+    $sql = "DELETE FROM pedido_status 
+            WHERE id_pedido_status = :id_pedido_status";
+
+    $stmt = $this->conn->prepare($sql);
+
+    return $stmt->execute([
+        ':id_pedido_status' => $idStatusPedido
+    ]);
+}
+
+
 }

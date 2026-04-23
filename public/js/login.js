@@ -21,7 +21,7 @@ async function login() {
     const data = await response.json();
 
     if (response.ok) {
-      window.location.href = "/teste/"; // 🔥 AGORA VAI PARA HOME
+      window.location.href = "/teste/";
     } else {
       alerta.textContent = data.mensagem;
       alerta.classList.remove("d-none");

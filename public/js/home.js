@@ -8,8 +8,10 @@ async function carregarUsuario() {
   try {
     const response = await fetch(`${BASE_URL}/api/usuario`);
     const data = await response.json();
-
     if (data.nome) {
+      // 🔥 Guarda o ID globalmente para outros scripts usarem
+      window.usuarioId = data.id_usuario;
+
       document.getElementById("usuario-logado").innerHTML =
         `<i class="fa-solid fa-user"></i> ${data.usuario} | ${data.nome}`;
     }
@@ -27,8 +29,6 @@ async function carregarDashboard() {
   const container = document.getElementById("conteudo-dashboard");
   container.innerHTML = html;
 
-  executarScripts(container);
-
   dashboardCarregado = true;
 }
 
@@ -41,12 +41,7 @@ async function carregarPedido() {
   const container = document.getElementById("conteudo-pedido");
   container.innerHTML = html;
 
-  executarScripts(container);
-
-  // 🔥 AGORA INICIALIZA DEPOIS DO HTML EXISTIR
-  if (typeof initPedidoStatus === "function") {
-    initPedidoStatus();
-  }
+  initPedidoStatus();
 
   pedidoCarregado = true;
 }
