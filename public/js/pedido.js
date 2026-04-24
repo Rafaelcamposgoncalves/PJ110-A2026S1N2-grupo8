@@ -495,7 +495,7 @@ if (window.PEDIDO_MODULE_LOADED) {
       const el = document.getElementById(campo.id);
 
       if (!el.value) {
-        camposFaltando.push(campo.nome);
+        camposFaltando.push(" " + campo.nome);
       }
     });
 
@@ -503,21 +503,16 @@ if (window.PEDIDO_MODULE_LOADED) {
     const tecidos = tecidosChoice.getValue(true);
 
     if (cores.length === 0) {
-      camposFaltando.push("Cores");
+      camposFaltando.push(" Cores");
     }
 
     if (tecidos.length === 0) {
-      camposFaltando.push("Tecido");
+      camposFaltando.push(" Tecido");
     }
 
     if (camposFaltando.length > 0) {
-      mostrarAlertaPedido(
-        "<b>Preencha os seguintes campos:</b><br><span class='badge rounded-pill text-bg-light border secondary-subtle'>" +
-          camposFaltando.join(
-            "</span> <span class='badge rounded-pill text-bg-light border secondary-subtle'>",
-          ),
-        "danger",
-      );
+      if (typeof showToast === "function")
+        showToast({ erro: `Preencha todos os campos: ${camposFaltando}` });
 
       return;
     }
@@ -554,10 +549,7 @@ if (window.PEDIDO_MODULE_LOADED) {
 
     const data = await response.json();
 
-    mostrarAlertaPedido(
-      data.mensagem || data.erro || "Erro inesperado",
-      response.ok ? "success" : "danger",
-    );
+    if (typeof showToast === "function") showToast(data);
 
     console.log(data);
 
@@ -620,10 +612,7 @@ if (window.PEDIDO_MODULE_LOADED) {
 
     const data = await response.json();
 
-    mostrarAlertaPedido(
-      data.mensagem || data.erro || "Erro ao excluir",
-      response.ok ? "success" : "danger",
-    );
+    if (typeof showToast === "function") showToast(data);
 
     listarPedidos();
   };

@@ -1,22 +1,55 @@
-@media (max-width: 991px) {
-  body {
-    padding-bottom: 70px;
-  }
+/* home.css */
+
+/* Regras gerais da Sidebar */
+.sidebar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  width: 240px; /* Largura definida para controle total */
+  height: calc(100vh - 56px);
+  background: #212529;
+  z-index: 1000;
+  overflow-y: auto;
+  border-right: 1px solid #333;
+  transition: all 0.3s;
 }
 
+.module-content {
+  min-height: 1500px;
+}
+
+/* Altura da Navbar (56px) + Altura do cabeçalho do módulo (aprox 50px) + margem */
+.accordion-item {
+  scroll-margin-top: 60px !important;
+}
+
+/* Ajustes de Layout Desktop */
 @media (min-width: 992px) {
+  .main-content {
+    margin-left: 240px; /* Empurra o conteúdo exatamente o tamanho da sidebar */
+    width: calc(100% - 240px);
+  }
   body {
     padding-bottom: 0;
   }
 }
 
-.sidebar {
-  min-height: calc(100vh - 56px);
-  background: #212529;
+/* Ajustes de Layout Mobile */
+@media (max-width: 991px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  body {
+    padding-bottom: 90px; /* Espaço para a barra de baixo */
+  }
 }
 
+/* Estilização Interna Sidebar */
 .sidebar .nav-link {
   color: #ccc;
+  border-radius: 0;
+  margin-bottom: 5px;
 }
 
 .sidebar .nav-link.active {
@@ -24,7 +57,7 @@
   color: white;
 }
 
-.sidebar .nav-link:hover {
+.sidebar .nav-link:hover:not(.active) {
   background: #343a40;
   color: white;
 }
@@ -35,25 +68,10 @@
   height: 32px;
   z-index: 2;
 }
-
-.choices__inner,
-.choices__input {
-  background-color: #fff;
-  height: 32px;
-  z-index: 0;
-}
-
 .choices__inner {
-  min-height: calc(1.5em + 0.5rem + 2px);
-  padding: 0.3px 0.5rem;
+  min-height: 32px;
+  padding: 2px 0.5rem;
   font-size: 0.875rem;
   border-radius: 0.25rem;
-}
-
-.choice_plus {
-  top: 0;
-  right: 0;
-  z-index: 10;
-  height: 100%;
-  border-radius: 0 4px 4px 0;
+  background-color: #fff;
 }

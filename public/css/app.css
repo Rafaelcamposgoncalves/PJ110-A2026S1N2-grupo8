@@ -1,9 +1,15 @@
 /* app.css */
-
 body {
   overflow-x: hidden;
+  padding-top: 56px; /* Altura exata da navbar fixa */
 }
 
 .nav-bottom {
-  box-shadow: 0 -4px 12px #eee;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1040;
+}
+/* Garante que o Toast apareça na frente da navbar e sidebar */
+.toast-container {
+  z-index: 2000 !important;
+  top: 20px !important; /* Dá um recuo do topo para não colar na navbar */
 }
