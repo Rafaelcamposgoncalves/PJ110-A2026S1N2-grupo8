@@ -342,8 +342,6 @@ if (window.PEDIDO_MODULE_LOADED) {
   let tecidosChoice;
   let coresChoice;
 
-  window.BASE_URL = window.location.origin + "/teste";
-
   window.apiUrlPedido = function (recurso, id = null) {
     if (id) return `${window.BASE_URL}/api/${recurso}/${id}`;
     return `${window.BASE_URL}/api/${recurso}`;
@@ -464,18 +462,35 @@ if (window.PEDIDO_MODULE_LOADED) {
                     <td>${pedido.observacao ?? ""}</td>
 
                     <td>
-                    <button class="btn btn-sm btn-warning" onclick="preencherEdicaoPedido(${pedido.id_pedido})">
-                    <i class="fa-solid fa-file-pen"></i>
-                    </button>
+                      <div class="btn-group" role="group" aria-label="Basic example">
+                        <button 
+                            class="btn btn-outline-secondary" 
+                            onclick="abrirModalPedidoDetalhe(${pedido.id_pedido})"
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="top" 
+                            title="Ver Detalhes do Pedido">
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </button>
 
-                    <button class="btn btn-sm btn-danger" onclick="deletarPedido(${pedido.id_pedido})">
-                    <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                        
+                        <button class="btn btn-outline-secondary" onclick="preencherEdicaoPedido(${pedido.id_pedido})" data-bs-toggle="tooltip" 
+                            data-bs-placement="top" 
+                            title="Editar Pedido">
+                        <i class="fa-solid fa-file-pen"></i>
+                        </button>
+
+                        <button class="btn btn-sm btn-danger" onclick="deletarPedido(${pedido.id_pedido})" data-bs-toggle="tooltip" 
+                            data-bs-placement="top" 
+                            title="Ver Excluir do Pedido">
+                        <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                      </div>
                     </td>
 
                     </tr>
                     `;
     });
+    initTooltips();
   };
 
   window.cadastrarOuAtualizarPedido = async function () {
@@ -512,7 +527,9 @@ if (window.PEDIDO_MODULE_LOADED) {
 
     if (camposFaltando.length > 0) {
       if (typeof showToast === "function")
-        showToast({ erro: `Preencha todos os campos: ${camposFaltando}` });
+        showToast("Pedido", {
+          erro: `Preencha todos os campos: ${camposFaltando}`,
+        });
 
       return;
     }
@@ -549,7 +566,7 @@ if (window.PEDIDO_MODULE_LOADED) {
 
     const data = await response.json();
 
-    if (typeof showToast === "function") showToast(data);
+    if (typeof showToast === "function") showToast("Pedido", data);
 
     console.log(data);
 
@@ -612,7 +629,7 @@ if (window.PEDIDO_MODULE_LOADED) {
 
     const data = await response.json();
 
-    if (typeof showToast === "function") showToast(data);
+    if (typeof showToast === "function") showToast("Pedido", data);
 
     listarPedidos();
   };

@@ -1,6 +1,5 @@
 if (!window.SHAPER_MODULE_LOADED) {
   window.SHAPER_MODULE_LOADED = true;
-  window.BASE_URL = window.location.origin + "/teste";
   window.editId = null;
 
   function apiUrl(recurso, id = null) {
@@ -99,7 +98,7 @@ if (!window.SHAPER_MODULE_LOADED) {
 
     if (!nome || !telefone || !email) {
       if (typeof showToast === "function")
-        showToast({ erro: "Preencha todos os campos corretamente" });
+        showToast("Shaper", { erro: "Preencha todos os campos corretamente" });
       return;
     }
 
@@ -121,7 +120,7 @@ if (!window.SHAPER_MODULE_LOADED) {
 
       const result = await response.json();
 
-      if (typeof showToast === "function") showToast(result);
+      if (typeof showToast === "function") showToast("Shaper", result);
 
       if (response.ok) {
         resetForm();
@@ -129,7 +128,7 @@ if (!window.SHAPER_MODULE_LOADED) {
       }
     } catch (error) {
       if (typeof showToast === "function")
-        showToast({ erro: "Erro ao conectar com o servidor" });
+        showToast("Shaper", { erro: "Erro ao conectar com o servidor" });
     }
   };
 
@@ -145,12 +144,12 @@ if (!window.SHAPER_MODULE_LOADED) {
       });
 
       const result = await response.json();
-      if (typeof showToast === "function") showToast(result);
+      if (typeof showToast === "function") showToast("Shaper", result);
 
       if (response.ok) listarShapers();
     } catch (error) {
       if (typeof showToast === "function")
-        showToast({ erro: "Erro ao excluir registro" });
+        showToast("Shaper", { erro: "Erro ao excluir registro" });
     }
   };
 

@@ -25,7 +25,7 @@ if ($recurso === 'dashboard') {
 /* SHAPER */
 if ($recurso === 'shaper') {
     auth();
-    require_once 'views/shaper/index.html';
+    require_once 'views/shaper/index.hmtl';
     exit;
 }
 
@@ -39,7 +39,7 @@ if ($recurso === 'pedido') {
 /* HOME */
 if ($recurso === null || $recurso === '') {
     auth();
-    require_once 'views/home/index.html';
+    require_once 'views/home/index.php';
     exit;
 }
 

@@ -12,7 +12,7 @@ async function login() {
   btn.disabled = true;
 
   try {
-    const response = await fetch("/teste/index.php?url=api/login", {
+    const response = await fetch(`${BASE_URL}/index.php?url=api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ usuario, senha }),
@@ -21,7 +21,7 @@ async function login() {
     const data = await response.json();
 
     if (response.ok) {
-      window.location.href = "/teste/";
+      window.location.href = `${BASE_URL}/`;
     } else {
       alerta.textContent = data.mensagem;
       alerta.classList.remove("d-none");

@@ -1,4 +1,7 @@
 {
+  "app": {
+    "base_path": "/teste"
+  },
   "database": {
     "host": "localhost",
     "dbname": "teste",

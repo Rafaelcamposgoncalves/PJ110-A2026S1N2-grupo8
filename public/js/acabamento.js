@@ -1,4 +1,4 @@
-const BASE_URL = window.location.origin + "/teste";
+//const BASE_URL = window.location.origin + "/teste";
 
 function apiUrl(recurso, id = null) {
   if (id) {

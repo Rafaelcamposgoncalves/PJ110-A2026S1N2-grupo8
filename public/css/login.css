@@ -4,7 +4,7 @@ body {
 }
 
 .left-side {
-  background-image: url("/teste/public/images/loginBackground.png");
+  background-image: url("../../public/images/loginBackground.png");
   background-size: cover;
   background-position: center;
 }
@@ -16,7 +16,7 @@ body {
 /* Mobile (até 767px) */
 @media (max-width: 767.98px) {
   .right-side {
-    background-image: url("/teste/public/images/loginBackground.png");
+    background-image: url("../../public/images/loginBackground.png");
     background-size: cover;
     background-position: center;
   }

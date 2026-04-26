@@ -1,5 +1,5 @@
 // app.js
-window.BASE_URL = window.location.origin + "/teste";
+//window.BASE_URL = window.location.origin + "/teste";
 
 // ===============================
 // GESTÃO DE ATUALIZAÇÃO DE TABS (NOVO)
@@ -55,10 +55,11 @@ window.executarScripts = async function (container) {
 // ===============================
 // SHOW TOAST GLOBAL
 // ===============================
-window.showToast = function (result) {
+window.showToast = function (title, result) {
   const toastEl = document.getElementById("alertToast");
   if (!toastEl) return;
 
+  const textTitle = toastEl.querySelector("#toast-title");
   const textToast = toastEl.querySelector("#toast-text");
   toastEl.classList.remove(
     "bg-danger",
@@ -74,7 +75,7 @@ window.showToast = function (result) {
     isErro ? "bg-danger" : "bg-success",
     isErro ? "text-light" : "text-light",
   );
-
+  textTitle.textContent = title;
   textToast.textContent = msg;
   bootstrap.Toast.getOrCreateInstance(toastEl).show();
 };

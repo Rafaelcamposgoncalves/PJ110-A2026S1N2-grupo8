@@ -5,27 +5,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login</title>
-
   <!-- Bootstrap CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <link rel="stylesheet" href="/teste/public/css/login.css">
+  <!-- Ajuste 1: CSS dinâmico -->
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/login.css">
 </head>
 
 <body>
+  <!-- AJUSTE 2: Define a variável BASE_URL para o login.js usar -->
+  <script>
+    window.BASE_URL = window.location.origin + "<?php echo $base; ?>";
+  </script>
 
   <div class="container-fluid">
     <div class="row login-container">
-
       <!-- Coluna Esquerda (Imagem) -->
       <div class="col-md-6 d-none d-md-block left-side"></div>
 
       <!-- Coluna Direita (Login) -->
       <div class="col-md-6 d-flex align-items-center justify-content-center bg-light right-side">
-
         <div class="card shadow p-4 pb-5" style="width: 100%; max-width: 400px;">
-
           <h3 class="text-center mb-4 text-body-tertiary">
             <i class="fa-solid fa-lock"></i>
           </h3>
@@ -37,27 +38,22 @@
             <label class="form-label">Usuário</label>
             <input type="text" id="usuario" class="form-control" placeholder="Digite seu usuário">
           </div>
-
           <div class="mb-3">
             <label class="form-label">Senha</label>
             <input type="password" id="senha" class="form-control" placeholder="Digite sua senha">
           </div>
-
           <div class="d-grid">
             <button id="btnLogin" class="btn btn-primary" onclick="login()">
               Entrar
             </button>
           </div>
-
         </div>
-
       </div>
-
     </div>
   </div>
 
-  <script src="/teste/public/js/login.js"></script>
-
+  <!-- Ajuste 3: JS dinâmico -->
+  <script src="<?php echo $base; ?>/public/js/login.js"></script>
 </body>
 
 </html>

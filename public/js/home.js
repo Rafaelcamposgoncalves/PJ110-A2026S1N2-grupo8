@@ -62,7 +62,7 @@ function carregarShaper() {
     return;
   }
 
-  fetch("/teste/views/shaper/index.html")
+  fetch(`${BASE_URL}/views/shaper/index.html`)
     .then((res) => res.text())
     .then((html) => {
       document.getElementById("conteudo-shaper").innerHTML = html;
@@ -70,6 +70,30 @@ function carregarShaper() {
       shaperCarregado = true;
     });
 }
+
+//Modal Detalhe do Pedido
+window.abrirModalPedidoDetalhe = function (id) {
+  //const btn = document.querySelector("#btnConfirmarExcluir");
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById("modalPedidoDetalhe"),
+  ).show();
+};
+
+function initTooltips() {
+  // Destrói instâncias antigas para evitar duplicidade de memória
+  const tooltips = document.querySelectorAll(".tooltip");
+  tooltips.forEach((t) => t.remove());
+
+  // Inicializa todos
+  const tooltipTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="tooltip"]'),
+  );
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+}
+
+// Chame initTooltips() sempre que terminar de carregar seus pedidos via AJAX/Fetch.
 
 // Inicialização
 document.addEventListener("DOMContentLoaded", () => {

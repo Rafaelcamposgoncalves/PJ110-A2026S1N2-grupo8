@@ -1,11 +1,11 @@
-/* home.css */
-
-/* Regras gerais da Sidebar */
+/* ============================================================
+   REGRAS GERAIS E LAYOUT (SIDEBAR / CONTEÚDO)
+   ============================================================ */
 .sidebar {
   position: fixed;
   top: 56px;
   left: 0;
-  width: 240px; /* Largura definida para controle total */
+  width: 240px;
   height: calc(100vh - 56px);
   background: #212529;
   z-index: 1000;
@@ -18,15 +18,14 @@
   min-height: 1500px;
 }
 
-/* Altura da Navbar (56px) + Altura do cabeçalho do módulo (aprox 50px) + margem */
 .accordion-item {
   scroll-margin-top: 60px !important;
 }
 
-/* Ajustes de Layout Desktop */
+/* Desktop */
 @media (min-width: 992px) {
   .main-content {
-    margin-left: 240px; /* Empurra o conteúdo exatamente o tamanho da sidebar */
+    margin-left: 240px;
     width: calc(100% - 240px);
   }
   body {
@@ -34,44 +33,98 @@
   }
 }
 
-/* Ajustes de Layout Mobile */
+/* Mobile */
 @media (max-width: 991px) {
   .main-content {
     margin-left: 0;
     width: 100%;
   }
   body {
-    padding-bottom: 90px; /* Espaço para a barra de baixo */
+    padding-bottom: 90px;
   }
 }
 
-/* Estilização Interna Sidebar */
+/* Sidebar Links */
 .sidebar .nav-link {
   color: #ccc;
   border-radius: 0;
   margin-bottom: 5px;
 }
-
 .sidebar .nav-link.active {
   background: #0d6efd;
   color: white;
 }
-
 .sidebar .nav-link:hover:not(.active) {
   background: #343a40;
   color: white;
 }
 
-/* Choices.js ajustes */
-.choices {
-  margin-bottom: 0;
-  height: 32px;
-  z-index: 2;
+/* ============================================================
+   AJUSTE DOS CAMPOS (CHOICES.JS + BOTÃO)
+   ============================================================ */
+
+/* Container do campo + botão */
+.input-group-custom {
+  display: flex !important;
+  align-items: stretch; /* Botão estica conforme a altura do select */
+  width: 100%;
+  position: relative;
+  z-index: auto;
 }
-.choices__inner {
+
+/* O Choices.js gera uma div .choices, precisamos que ela cresça */
+.input-group-custom .choices {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* Ajuste das bordas internas do Choices para colar no botão */
+.input-group-custom .choices__inner {
   min-height: 32px;
-  padding: 2px 0.5rem;
-  font-size: 0.875rem;
-  border-radius: 0.25rem;
+  padding: 2px 8px;
+  border-radius: 0.25rem 0 0 0.25rem !important; /* Arredonda só a esquerda */
+  border-right: none !important; /* Tira a borda da direita para colar */
   background-color: #fff;
+  font-size: 0.875rem;
+}
+
+/* Estilo do botão de engrenagem */
+.choice_plus {
+  position: static !important;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #666;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 0.25rem 0.25rem 0 !important; /* Arredonda só a direita */
+  cursor: pointer;
+  height: auto;
+  z-index: 1; /* Fica abaixo do dropdown */
+}
+
+.choice_plus:hover {
+  background-color: #f8f9fa;
+}
+
+/* ============================================================
+   CORREÇÃO DE SOBREPOSIÇÃO (Z-INDEX)
+   ============================================================ */
+
+/* Garante que o dropdown do Choices fique por cima de tudo */
+.choices__list--dropdown {
+  z-index: 9999 !important;
+}
+
+/* Quando o select está aberto, ele ganha prioridade máxima */
+.choices.is-open {
+  z-index: 9999 !important;
+}
+
+/* Sortable.js: Impede que o texto seja selecionado enquanto arrasta no mobile */
+.reorder-handle {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none; /* Melhora a resposta ao toque */
 }

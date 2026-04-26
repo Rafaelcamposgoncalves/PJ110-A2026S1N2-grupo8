@@ -1,3 +1,9 @@
+<script>
+    // Usa a variável $base definida na raiz
+    window.BASE_URL = window.location.origin + "<?php echo $base; ?>";
+</script>
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -12,13 +18,9 @@
   <!-- Choices.js -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 
-  <link rel="stylesheet" href="/teste/public/css/app.css">
-  <link rel="stylesheet" href="/teste/public/css/home.css">
-  <link rel="stylesheet" href="/teste/lib/rtimeline/css/rtimeline.css">
-
-  <script>
-    window.BASE_URL = window.location.origin + "<?php echo $base; ?>";
-  </script>
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/app.css">
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/home.css">
+  <link rel="stylesheet" href="<?php echo $base; ?>/lib/rtimeline/css/rtimeline.css">
 </head>
 
 <body id="up">
@@ -155,14 +157,13 @@
   <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-  <script src="/teste/public/js/app.js"></script>
-  <script src="/teste/public/js/home.js"></script>
-  <script src="/teste/public/js/shaper.js"></script>
-  <script src="/teste/public/js/pedido-status.js"></script>
-  <script src="/teste/public/js/pedido.js"></script>
-  <script src="/teste/public/js/status.js"></script>
-
-
+  <script src="<?php echo $base; ?>/public/js/Sortable.min.js"></script>
+  <script src="<?php echo $base; ?>/public/js/app.js"></script>
+  <script src="<?php echo $base; ?>/public/js/home.js"></script>
+  <script src="<?php echo $base; ?>/public/js/shaper.js"></script>
+  <script src="<?php echo $base; ?>/public/js/pedido-status.js"></script>
+  <script src="<?php echo $base; ?>/public/js/pedido.js"></script>
+  <script src="<?php echo $base; ?>/public/js/status.js"></script>
 </body>
 
 </html>

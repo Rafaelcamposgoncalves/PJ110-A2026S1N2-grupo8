@@ -171,7 +171,7 @@ window.salvarStatusPedido = async function () {
     });
 
     const result = await res.json();
-    if (typeof showToast === "function") showToast(result);
+    if (typeof showToast === "function") showToast("Status do Pedido", result);
 
     const modalEl = document.getElementById("modalStatus");
     const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -194,7 +194,7 @@ window.excluirStatusPedido = async function (id) {
     const url = apiUrlPedido("pedidos-status") + "?id_pedido_status=" + id;
     const res = await fetch(url, { method: "DELETE" });
     const result = await res.json();
-    if (typeof showToast === "function") showToast(result);
+    if (typeof showToast === "function") showToast("Status do Pedido", result);
 
     const modalEl = document.getElementById("modalStatusExcluir");
     const modalInstance = bootstrap.Modal.getInstance(modalEl);
