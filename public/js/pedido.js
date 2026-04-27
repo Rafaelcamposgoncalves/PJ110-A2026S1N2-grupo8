@@ -673,3 +673,27 @@ if (window.PEDIDO_MODULE_LOADED) {
     }
   });
 }
+
+window.carregarShapersPedido = async function () {
+  const select = document.getElementById("id_shaperPedido");
+  if (!select) return;
+
+  try {
+    // Adicionamos t=Date.now() para "matar" o cache do navegador
+    const res = await fetch(
+      `${window.BASE_URL}/api/shapers?ativos=true&t=${Date.now()}`,
+    );
+    const shapers = await res.json();
+
+    select.innerHTML = '<option value="">Selecione...</option>';
+    shapers.forEach((s) => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.nome;
+      select.appendChild(opt);
+    });
+    console.log("Shapers ativos carregados com sucesso.");
+  } catch (e) {
+    console.error("Erro ao carregar shapers:", e);
+  }
+};

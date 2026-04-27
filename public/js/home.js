@@ -36,16 +36,20 @@ async function carregarPedido() {
     if (window.carregarShapersPedido) window.carregarShapersPedido();
     return;
   }
-
   try {
     const response = await fetch(`${BASE_URL}/pedido`);
     const html = await response.text();
     document.getElementById("conteudo-pedido").innerHTML = html;
 
+    // 🔥 ADICIONADO AQUI: Preenche o select logo após injetar o HTML pela primeira vez
+    if (window.carregarShapersPedido) {
+      await window.carregarShapersPedido();
+    }
+
     // Inicializa pela primeira vez
     if (window.initPedidoStatus) window.initPedidoStatus();
 
-    // 🔥 ATIVA OS OUVINTES DAS TABS (IMPORTANTE PARA ATUALIZAR AO CLICAR)
+    // 🔥 ATIVA OS OUVINTES DAS TABS
     if (window.vincularEventosTabs) {
       window.vincularEventosTabs();
     }

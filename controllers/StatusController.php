@@ -7,15 +7,12 @@ class StatusController {
 
     public function __construct() {
         $database = new Database();
-        $db = $database->connect();
-        $this->model = new Status($db);
+        $this->model = new Status($database->connect());
     }
 
     public function processRequest($method, $id = null) {
         header("Content-Type: application/json; charset=UTF-8");
-        
-        $inputJSON = file_get_contents("php://input");
-        $input = json_decode($inputJSON, true) ?? $_POST;
+        $input = json_decode(file_get_contents("php://input"), true) ?? $_POST;
 
         if ($method === 'POST' && isset($input['_method'])) {
             $method = strtoupper($input['_method']);
@@ -26,58 +23,50 @@ class StatusController {
                 case 'GET':
                     if (isset($_GET['id_atual'])) {
                         echo json_encode($this->model->buscarSequencia($_GET['id_atual']) ?: ["descricao" => "Fim", "id_status" => null]);
-                    } elseif ($id) {
-                        echo json_encode($this->model->buscar($id) ?: ["erro" => "Não encontrado"]);
                     } else {
-                        echo json_encode($this->model->listar());
+                        echo json_encode($id ? $this->model->buscar($id) : $this->model->listar());
                     }
                     break;
 
                 case 'POST':
-                    // Caso 1: Reordenação em massa (Drag and Drop)
-                    if (isset($input['ordens']) && is_array($input['ordens'])) {
-                        $sucessoTotal = true;
+                    if (isset($input['ordens'])) {
                         foreach ($input['ordens'] as $item) {
-                            if (!$this->model->atualizar($item['id'], null, $item['ordem'], true)) {
-                                $sucessoTotal = false;
-                            }
+                            $this->model->atualizar($item['id'], null, $item['ordem'], true);
                         }
-                        echo json_encode($sucessoTotal ? ["mensagem" => "Ordem atualizada"] : ["erro" => "Falha ao reordenar"]);
+                        echo json_encode(["mensagem" => "Reordenado"]);
                         return;
                     }
-
-                    // Caso 2: Cadastro Normal
-                    if (empty($input['descricao'])) {
-                        http_response_code(400);
-                        echo json_encode(["erro" => "Descrição é obrigatória"]);
-                        return;
-                    }
-                    $ok = $this->model->criar($input['descricao'], $input['ordem'] ?? 0);
-                    echo json_encode($ok ? ["mensagem" => "Criado"] : ["erro" => "Falha ao criar"]);
+                    echo json_encode($this->model->criar($input['descricao'], $input['ordem'] ?? 0) ? ["mensagem" => "Criado"] : ["erro" => "Falha"]);
                     break;
 
                 case 'PUT':
                     $finalId = $id ?? $input['id'] ?? null;
-                    if (!$finalId) {
-                        http_response_code(400);
-                        echo json_encode(["erro" => "ID não informado"]);
-                        return;
+                    if (isset($input['somenteAtivo'])) {
+                        $ok = $this->model->atualizarAtivo($finalId, $input['ativo']);
+                    } else {
+                        $ok = $this->model->atualizar($finalId, $input['descricao'], $input['ordem'] ?? 0, false);
                     }
-                    // 🔥 CORREÇÃO: Passando o 4º parâmetro (false) para indicar que NÃO é somente ordem
-                    $ok = $this->model->atualizar($finalId, $input['descricao'], $input['ordem'] ?? 0, false);
                     echo json_encode($ok ? ["mensagem" => "Atualizado"] : ["erro" => "Falha"]);
                     break;
 
                 case 'DELETE':
-                    $finalId = $id ?? $input['id'] ?? null;
-                    $ok = $this->model->deletar($finalId);
-                    echo json_encode($ok ? ["mensagem" => "Deletado"] : ["erro" => "Falha"]);
+                    try {
+                        $finalId = $id ?? $input['id'] ?? null;
+                        $ok = $this->model->deletar($finalId);
+                        echo json_encode(["mensagem" => "Status excluído com sucesso!"]);
+                    } catch (PDOException $e) {
+                        // Erro 1451: Restrição de integridade (foreign key constraint)
+                        if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
+                            http_response_code(400); // Bad Request (erro do lado do cliente/regra de negócio)
+                            echo json_encode([
+                                "erro" => "Não é possível excluir um status em uso. Este status possui vínculos com pedidos existentes. Para ocultá-lo, utilize a opção de desativar."                                
+                            ]);
+                        } else {
+                            throw $e; // Lança outros erros genéricos
+                        }
+                    }
                     break;
 
-                default:
-                    http_response_code(405);
-                    echo json_encode(["erro" => "Método não permitido"]);
-                    break;
             }
         } catch (Exception $e) {
             http_response_code(500);

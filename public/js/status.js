@@ -1,26 +1,17 @@
-// Garantir que o ID de edição seja global
 window.editIdStatus = null;
 
-// Função auxiliar de URL
 function apiStatus(id = null) {
   if (id) return `${window.BASE_URL}/api/status/${id}`;
   return `${window.BASE_URL}/api/status`;
 }
 
-// 🔥 EXPOSTA PARA O BOTÃO DA SIDEBAR
 window.carregarStatus = async function () {
   const container = document.getElementById("conteudo-status");
-  try {
-    const res = await fetch(`${window.BASE_URL}/views/status/index.html`);
-    const html = await res.text();
-    container.innerHTML = html;
-    window.listarStatus(); // Chama a listagem após carregar o HTML
-  } catch (error) {
-    console.error("Erro ao carregar view status:", error);
-  }
+  const res = await fetch(`${window.BASE_URL}/views/status/index.html`);
+  container.innerHTML = await res.text();
+  window.listarStatus();
 };
 
-// 🔥 EXPOSTA PARA ATUALIZAR A TABELA
 window.listarStatus = async function () {
   try {
     const res = await fetch(apiStatus());
@@ -28,40 +19,58 @@ window.listarStatus = async function () {
     const lista = document.getElementById("lista-status");
     if (!lista) return;
 
+    // 1. Limpa a lista
     lista.innerHTML = "";
+
+    // 2. Alimenta a tabela
     data.forEach((s) => {
-      // Adicionado draggable="true" para ativar o suporte ao arrastar
-      lista.innerHTML += `
-                <tr data-id="${s.id}" draggable="true"> 
-                    <td class="reorder-handle" style="cursor: grab;">
-                        <i class="fa-solid fa-grip-vertical text-muted"></i> ${s.id}
-                    </td>
-                    <td>${s.descricao}</td>
-                    <td class="col-ordem">${s.ordem}</td>
-                    <td>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary" onclick='window.editarStatus(${JSON.stringify(s)})'>
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button class="btn btn-outline-danger" onclick='window.deletarStatus(${s.id})'>
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>`;
+      const tr = document.createElement("tr");
+      tr.setAttribute("data-id", s.id);
+      tr.setAttribute("draggable", "true"); // Força o atributo nativo
+
+      tr.innerHTML = `
+                <td class="reorder-handle" style="cursor: grab;">
+                    <i class="fa-solid fa-grip-vertical text-muted me-2"></i>${s.id}
+                </td>
+                <td>${s.descricao}</td>
+                <td class="col-ordem">${s.ordem}</td>
+                <td class="text-center">
+                    <div class="form-check form-switch d-inline-block">
+                        <input class="form-check-input" type="checkbox" role="switch" 
+                            ${s.ativo == 1 ? "checked" : ""} 
+                            onchange="window.alternarAtivoStatus(${s.id}, this.checked)">
+                    </div>
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" onclick='window.editarStatus(${JSON.stringify(s)})'>
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" onclick='window.deletarStatus(${s.id})'>
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+      lista.appendChild(tr);
     });
 
-    // Só inicializa se o Sortable foi carregado corretamente no index.php
+    // 3. Reinicializa o Sortable (Garante que a instância antiga não bloqueie a nova)
     if (typeof Sortable !== "undefined") {
+      let oldSortable = Sortable.get(lista);
+      if (oldSortable) oldSortable.destroy();
+
       new Sortable(lista, {
         animation: 150,
         handle: ".reorder-handle",
+        draggable: "tr",
 
-        // --- AJUSTES PARA MOBILE ---
-        delay: 100, // Tempo pressionando para começar a arrastar (evita o scroll acidental)
-        delayOnTouchOnly: true, // O delay só aplica no telemóvel
-        touchStartThreshold: 5, // Pixels que o dedo move antes de cancelar o clique
-        // ---------------------------
+        // --- CONFIGURAÇÕES CRÍTICAS PARA MOBILE ---
+        delay: 200, // Precisa segurar o dedo por 200ms para começar a arrastar
+        delayOnTouchOnly: true, // No PC (mouse) o arrasto continua instantâneo
+        touchStartThreshold: 5, // Se o dedo mover mais de 5px, ele cancela o drag (entende como scroll)
+        direction: "vertical",
+        // ------------------------------------------
 
         onEnd: async function () {
           await window.salvarNovaOrdemStatus();
@@ -69,49 +78,47 @@ window.listarStatus = async function () {
       });
     }
   } catch (error) {
-    console.error("Erro na listagem:", error);
+    console.error("Erro ao listar:", error);
   }
 };
 
-// FUNÇÃO PARA SALVAR A NOVA ORDEM NO BANCO
-window.salvarNovaOrdemStatus = async function () {
-  const linhas = document.querySelectorAll("#lista-status tr");
-  const novaOrdem = [];
-
-  linhas.forEach((linha, index) => {
-    const id = linha.getAttribute("data-id");
-    const ordem = index + 1; // Nova ordem baseada na posição visual
-    novaOrdem.push({ id, ordem });
-
-    // Atualiza visualmente o número na coluna ordem
-    linha.querySelector(".col-ordem").innerText = ordem;
-  });
-
-  // Envia para o servidor (precisamos ajustar o Controller para receber lote)
-  await fetch(`${window.BASE_URL}/api/status/reordenar`, {
+window.alternarAtivoStatus = async function (id, isChecked) {
+  await fetch(apiStatus(id), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ordens: novaOrdem }),
+    body: JSON.stringify({
+      _method: "PUT",
+      id: id,
+      ativo: isChecked ? 1 : 0,
+      somenteAtivo: true,
+    }),
   });
 };
 
-// 🔥 EXPOSTA PARA O BOTÃO DO FORMULÁRIO
+window.salvarNovaOrdemStatus = async function () {
+  const ordens = Array.from(document.querySelectorAll("#lista-status tr")).map(
+    (linha, i) => {
+      const id = linha.getAttribute("data-id");
+      linha.querySelector(".col-ordem").innerText = i + 1;
+      return { id, ordem: i + 1 };
+    },
+  );
+  await fetch(apiStatus(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ordens }),
+  });
+};
+
 window.salvarCadastroStatus = async function () {
   const descricao = document.getElementById("descricao").value;
   const ordem = document.getElementById("ordem").value;
-
   if (!descricao) return alert("Preencha a descrição");
 
-  let body = { descricao, ordem };
-  let url = apiStatus();
+  let body = { descricao, ordem, id: window.editIdStatus };
+  if (window.editIdStatus) body._method = "PUT";
 
-  if (window.editIdStatus) {
-    body._method = "PUT";
-    body.id = window.editIdStatus;
-    url = apiStatus(window.editIdStatus);
-  }
-
-  const res = await fetch(url, {
+  const res = await fetch(apiStatus(window.editIdStatus), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -120,58 +127,82 @@ window.salvarCadastroStatus = async function () {
   if (res.ok) {
     window.editIdStatus = null;
     document.getElementById("descricao").value = "";
-    document.getElementById("ordem").value = "";
     document.getElementById("btnSubmitStatus").innerHTML =
       '<i class="fa-solid fa-plus"></i> Cadastrar';
     window.listarStatus();
   }
 };
 
-// 🔥 EXPOSTA PARA O BOTÃO DE EDITAR NA TABELA
+// Altere a sua função editarStatus existente
 window.editarStatus = function (s) {
   window.editIdStatus = s.id;
   document.getElementById("descricao").value = s.descricao;
   document.getElementById("ordem").value = s.ordem;
+
+  // Altera o botão principal
   document.getElementById("btnSubmitStatus").innerHTML =
     '<i class="fa-solid fa-save"></i> Atualizar';
-  // Faz scroll para o topo do formulário se necessário
+  document
+    .getElementById("btnSubmitStatus")
+    .classList.replace("btn-primary", "btn-success");
+
+  // 🔥 MOSTRA o botão cancelar
+  document.getElementById("btnCancelarEdicao").classList.remove("d-none");
+
   document.getElementById("descricao").focus();
 };
 
-// 🔥 EXPOSTA PARA O BOTÃO DE ELIMINAR NA TABELA
-window.deletarStatus = async function (id) {
+// 🔥 NOVA FUNÇÃO: Reseta o formulário para o estado de "Cadastrar"
+window.cancelarEdicaoStatus = function () {
+  window.editIdStatus = null;
+
+  // Limpa os campos
+  document.getElementById("descricao").value = "";
+  document.getElementById("ordem").value = "";
+
+  // Volta o botão principal ao normal
+  document.getElementById("btnSubmitStatus").innerHTML =
+    '<i class="fa-solid fa-plus"></i> Cadastrar';
+  document
+    .getElementById("btnSubmitStatus")
+    .classList.replace("btn-success", "btn-primary");
+
+  // 🔥 ESCONDE o botão cancelar
+  document.getElementById("btnCancelarEdicao").classList.add("d-none");
+};
+
+// DICA: Adicione a chamada do cancelar dentro do salvarCadastroStatus após o sucesso:
+// No final do seu 'if (res.ok) { ... }' adicione:
+// window.cancelarEdicaoStatus();
+
+window.deletarStatus = async (id) => {
   if (!confirm("Tem certeza que deseja excluir este status?")) return;
+
   try {
-    await fetch(apiStatus(id), {
+    const res = await fetch(apiStatus(id), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ _method: "DELETE", id: id }),
+      body: JSON.stringify({ _method: "DELETE" }),
     });
-    window.listarStatus();
+
+    const result = await res.json();
+
+    if (res.ok) {
+      if (typeof showToast === "function")
+        showToast("Status", { mensagem: result.mensagem });
+      window.listarStatus();
+    } else {
+      // Aqui ele captura a mensagem de "Não é possível excluir..." enviada pelo PHP
+      if (typeof showToast === "function") {
+        showToast("Status", {
+          erro: result.erro,
+          mensagem: result.mensagem,
+        });
+      }
+    }
   } catch (error) {
     console.error("Erro ao deletar:", error);
+    if (typeof showToast === "function")
+      showToast("Erro", { erro: "Falha na comunicação com o servidor." });
   }
 };
-
-// 🔥 EXPOSTA PARA O BOTÃO DE BUSCA (LUPA)
-window.buscarStatus = function () {
-  const termo = document.getElementById("buscarStatus").value.toLowerCase();
-  const linhas = document.querySelectorAll("#lista-status tr");
-
-  linhas.forEach((linha) => {
-    const textoLinha = linha.textContent.toLowerCase();
-    // Se o termo estiver vazio ou contido no texto da linha, exibe; senão, esconde.
-    if (textoLinha.includes(termo)) {
-      linha.style.display = "";
-    } else {
-      linha.style.display = "none";
-    }
-  });
-};
-
-// Opcional: Permitir buscar ao apertar ENTER no campo de busca
-document.addEventListener("keypress", function (e) {
-  if (e.target.id === "buscarStatus" && e.key === "Enter") {
-    window.buscarStatus();
-  }
-});

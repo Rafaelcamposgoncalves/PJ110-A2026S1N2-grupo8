@@ -1,8 +1,7 @@
 // app.js
-//window.BASE_URL = window.location.origin + "/teste";
 
 // ===============================
-// GESTÃO DE ATUALIZAÇÃO DE TABS (NOVO)
+// GESTÃO DE ATUALIZAÇÃO DE TABS
 // ===============================
 window.vincularEventosTabs = function () {
   const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
@@ -15,21 +14,28 @@ window.vincularEventosTabs = function () {
 
 function gerirTrocaDeAba(event) {
   const targetId = event.target.getAttribute("data-bs-target");
-  //console.log("Aba ativada:", targetId);
 
-  // Se clicar em Status, atualiza a lista (puxa nomes novos do banco)
+  // Se clicar na Tab de Timeline/Status
   if (targetId === "#tabPedidoStatus") {
     if (typeof window.listarPedidosStatus === "function") {
       window.listarPedidosStatus();
     }
   }
-  // Se clicar em Gerenciamento, atualiza a tabela e selects
+
+  // Se clicar na Tab de Gerenciamento (Listagem de Pedidos)
   if (targetId === "#tabGerenciamentoPedido") {
     if (typeof window.listarPedidos === "function") {
       window.listarPedidos();
     }
+
+    // 🔥 ATUALIZAÇÃO DOS SELECTS (Inclui Shapers, Cores, etc.)
     if (typeof window.carregarSelectsPedido === "function") {
       window.carregarSelectsPedido();
+    }
+
+    // 🔥 Garante que a lista de Shapers ativos seja renovada
+    if (typeof window.carregarShapersPedido === "function") {
+      window.carregarShapersPedido();
     }
   }
 }
@@ -61,34 +67,38 @@ window.showToast = function (title, result) {
 
   const textTitle = toastEl.querySelector("#toast-title");
   const textToast = toastEl.querySelector("#toast-text");
+
+  // Reset de cores
   toastEl.classList.remove(
     "bg-danger",
     "text-danger",
     "bg-success",
     "text-success",
+    "text-light",
   );
 
   const isErro = !!result.erro;
-  const msg = result.erro || result.mensagem || "Sem resposta";
+  const msg = result.erro || result.mensagem || "Sem resposta do servidor";
 
-  toastEl.classList.add(
-    isErro ? "bg-danger" : "bg-success",
-    isErro ? "text-light" : "text-light",
-  );
+  toastEl.classList.add(isErro ? "bg-danger" : "bg-success", "text-light");
+
   textTitle.textContent = title;
   textToast.textContent = msg;
+
   bootstrap.Toast.getOrCreateInstance(toastEl).show();
 };
 
 // ===============================
-// LOGOUT (CORRIGIDO)
+// LOGOUT
 // ===============================
 window.logout = async function () {
   try {
-    await fetch(`${BASE_URL}/api/logout`, { method: "POST" });
+    await fetch(`${window.BASE_URL}/api/logout`, {
+      method: "POST",
+    });
   } catch (err) {
     console.error("Erro ao deslogar no servidor:", err);
   }
-  // Redireciona sempre, mesmo que o fetch falhe
-  window.location.href = `${BASE_URL}/login`;
+  // Redireciona sempre para o login usando a base configurada
+  window.location.href = `${window.BASE_URL}/login`;
 };

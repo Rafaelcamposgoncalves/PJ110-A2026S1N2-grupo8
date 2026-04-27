@@ -22,9 +22,17 @@
         </div>
 
         <div class="col-12">
-          <button id="btnSubmitStatus" class="btn btn-sm btn-primary" onclick="salvarCadastroStatus()">
-            <i class="fa-solid fa-plus"></i> Cadastrar
-          </button>
+          <div class="col-12">
+            <button id="btnSubmitStatus" class="btn btn-sm btn-primary" onclick="window.salvarCadastroStatus()">
+              <i class="fa-solid fa-plus"></i> Cadastrar
+            </button>
+
+            <!-- Novo botão Cancelar -->
+            <button id="btnCancelarEdicao" class="btn btn-sm btn-outline-secondary d-none" onclick="window.cancelarEdicaoStatus()">
+              Cancelar
+            </button>
+          </div>
+
         </div>
 
       </div>
@@ -50,6 +58,7 @@
           <th>ID</th>
           <th>Descrição</th>
           <th>Ordem</th>
+          <th width="100">Ativ/Desat</th>
           <th width="120">Ações</th>
         </tr>
       </thead>

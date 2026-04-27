@@ -9,13 +9,32 @@ class Shaper {
         $this->conn = $db;
     }
 
+    public function atualizarAtivo($id, $ativo) {
+        // Ajustado para usar {$this->table} e o nome correto da coluna id_shaper
+        $sql = "UPDATE {$this->table} SET ativo = :ativo WHERE id_shaper = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            ":id" => $id, 
+            ":ativo" => $ativo
+        ]);
+    }
+
+    public function listarAtivos() {
+        $sql = "SELECT id_shaper AS id, nome FROM {$this->table} WHERE ativo = 1 ORDER BY nome ASC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+
     /* =========================
        LISTAR
     ========================= */
     public function listar() {
 
         $sql = "
-            SELECT id_shaper AS id, nome, email, telefone 
+            SELECT id_shaper AS id, nome, email, telefone, ativo
             FROM {$this->table}
         ";
 
