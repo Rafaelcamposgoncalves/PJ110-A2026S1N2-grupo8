@@ -99,28 +99,36 @@ if (window.PEDIDO_MODULE_LOADED) {
     const lista = document.getElementById("listaComposicoesModal");
     lista.innerHTML = "";
 
+    // Procure onde você faz o loop (forEach) da listaComposicoesModal
     data.forEach((item) => {
-      const id = item.id || Object.values(item)[0];
-      const descricao = item.descricao || item.nome;
+      // 🔥 Criamos uma variável que pega o primeiro ID que encontrar no objeto
+      const idReal =
+        item.id ||
+        item.id_composicao ||
+        item.id_variacao ||
+        item.id_acabamento ||
+        item.id_configuracaoquilha ||
+        item.id_acabamento ||
+        item.id_sistemaquilha ||
+        item.id_cor ||
+        item.id_tecido;
 
       lista.innerHTML += `
-        <tr>
-          <td>${id}</td>
-          <td>${descricao}</td>
-          <td>
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary"
-                onclick='editarItem(${id}, ${JSON.stringify(descricao)})'>
-                <i class="fa-solid fa-pen"></i>
-              </button>
-              <button class="btn btn-sm btn-outline-secondary"
-                onclick="deletarItem(${id})">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+    <tr>
+        <td>${idReal}</td>
+        <td>${item.descricao}</td>
+        <td>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary" onclick="window.editarItem(${idReal}, '${item.descricao}')">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <!-- 🔥 Agora passamos o idReal que acabamos de descobrir -->
+                <button class="btn btn-outline-danger" onclick="window.abrirModalExcluirGerenciamento(${idReal})">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </div>
-          </td>
-        </tr>
-      `;
+        </td>
+    </tr>`;
     });
   }
 
@@ -182,27 +190,54 @@ if (window.PEDIDO_MODULE_LOADED) {
   // ===============================
   // EXCLUIR
   // ===============================
-  window.deletarItem = async function (id) {
-    if (!confirm("Excluir este item?")) return;
+  // 1. FUNÇÃO QUE ABRE O MODAL (CHAMADA PELO BOTÃO NA TABELA)
+  window.abrirModalExcluirGerenciamento = function (id) {
+    const modalEl = document.getElementById("modalExcluirGerenciamento");
+    const btnSim = document.getElementById("btnConfirmarExcluirGerenciamento");
 
-    const response = await fetch(
-      `${BASE_URL}/api/${contextoAtual.recurso}/${id}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _method: "DELETE" }),
-      },
-    );
+    if (!modalEl) return console.error("Modal de exclusão não encontrado!");
 
-    const data = await response.json();
+    // Configura o que o botão "Sim" vai fazer
+    btnSim.onclick = async () => {
+      await window.deletarItemReal(id); // Chama a função que deleta de verdade
+      bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+    };
 
-    if (!response.ok) {
-      alert(data.erro);
-      return;
+    // Limpa erro de backdrop e abre
+    let inst = bootstrap.Modal.getInstance(modalEl);
+    if (inst) inst.dispose();
+    new bootstrap.Modal(modalEl).show();
+  };
+
+  // 2. A FUNÇÃO QUE REALMENTE DELETA (AJUSTADA)
+  window.deletarItemReal = async function (id) {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/${contextoAtual.recurso}/${id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ _method: "DELETE" }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        //Só entra aqui se o status for 200 (Sucesso real)
+        showToast("Sucesso", data);
+        carregarListaModal();
+        if (typeof popularSelects === "function") popularSelects();
+      } else {
+        //Entra aqui se o status for 400 (O que configuramos no Controller)
+        showToast("Impedimento", {
+          erro: data.erro,
+          mensagem: data.mensagem || "Este item está em uso.",
+        });
+      }
+    } catch (err) {
+      console.error("Erro na requisição:", err);
     }
-
-    carregarListaModal();
-    if (typeof popularSelects === "function") popularSelects();
   };
 
   // ===============================
@@ -230,6 +265,7 @@ if (window.PEDIDO_MODULE_LOADED) {
   // ===============================
   // EXCLUIR DIRETO DO SELECT
   // ===============================
+  /*
   window.excluirSelecionado = async function (tipo) {
     const map = {
       composicao: "id_composicaoPedido",
@@ -285,7 +321,7 @@ if (window.PEDIDO_MODULE_LOADED) {
       console.error(err);
       alert("Erro de conexão");
     }
-  };
+  };*/
 
   // ===============================
   // ABRIR PEDIDO
@@ -463,14 +499,10 @@ if (window.PEDIDO_MODULE_LOADED) {
 
                     <td>
                       <div class="btn-group" role="group" aria-label="Basic example">
-                        <button 
-                            class="btn btn-outline-secondary" 
-                            onclick="abrirModalPedidoDetalhe(${pedido.id_pedido})"
-                            data-bs-toggle="tooltip" 
-                            data-bs-placement="top" 
-                            title="Ver Detalhes do Pedido">
+                        <button class="btn btn-outline-secondary" onclick="window.abrirModalPedidoDetalhe(${pedido.id_pedido})">
                             <i class="fa-solid fa-ellipsis"></i>
                         </button>
+
 
                         
                         <button class="btn btn-outline-secondary" onclick="preencherEdicaoPedido(${pedido.id_pedido})" data-bs-toggle="tooltip" 
@@ -479,10 +511,8 @@ if (window.PEDIDO_MODULE_LOADED) {
                         <i class="fa-solid fa-file-pen"></i>
                         </button>
 
-                        <button class="btn btn-sm btn-danger" onclick="deletarPedido(${pedido.id_pedido})" data-bs-toggle="tooltip" 
-                            data-bs-placement="top" 
-                            title="Ver Excluir do Pedido">
-                        <i class="fa-solid fa-trash-can"></i>
+                        <button class="btn btn-sm btn-outline-danger" onclick="window.abrirModalDeletarPedido(${pedido.id_pedido})">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                       </div>
                     </td>
@@ -567,9 +597,6 @@ if (window.PEDIDO_MODULE_LOADED) {
     const data = await response.json();
 
     if (typeof showToast === "function") showToast("Pedido", data);
-
-    console.log(data);
-
     listarPedidos();
   };
 
@@ -616,22 +643,32 @@ if (window.PEDIDO_MODULE_LOADED) {
     resetFormPedido();
   };
 
+  window.abrirModalDeletarPedido = function (id) {
+    const modalEl = document.getElementById("modalPedidoExcluir");
+    const btnConfirmar = document.getElementById("btnConfirmarDeletarPedido");
+
+    // Vincula o ID ao botão de confirmação
+    btnConfirmar.onclick = async () => {
+      await window.deletarPedido(id);
+      bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+    };
+
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  };
+
   window.deletarPedido = async function (id) {
-    if (!confirm("Deseja realmente excluir este pedido?")) return;
-
-    const response = await fetch(apiUrlPedido("pedidos", id), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ _method: "DELETE" }),
-    });
-
-    const data = await response.json();
-
-    if (typeof showToast === "function") showToast("Pedido", data);
-
-    listarPedidos();
+    try {
+      const response = await fetch(apiUrlPedido("pedidos", id), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _method: "DELETE" }),
+      });
+      const data = await response.json();
+      if (typeof showToast === "function") showToast("Pedido", data);
+      listarPedidos();
+    } catch (error) {
+      console.error("Erro ao deletar pedido:", error);
+    }
   };
 
   window.resetFormPedido = function () {
@@ -692,8 +729,55 @@ window.carregarShapersPedido = async function () {
       opt.textContent = s.nome;
       select.appendChild(opt);
     });
-    console.log("Shapers ativos carregados com sucesso.");
   } catch (e) {
     console.error("Erro ao carregar shapers:", e);
   }
+};
+
+window.abrirModalPedidoDetalhe = async function (id) {
+  const modalEl = document.getElementById("modalPedidoDetalhe");
+  const corpoModal = modalEl.querySelector(".modal-body");
+  const tituloModal = modalEl.querySelector(".modal-title");
+  const btnSim = document.getElementById("btnConfirmarExcluir");
+
+  // 1. Ajusta o visual da modal para "Modo Visualização"
+  tituloModal.innerHTML = `<i class="fa-solid fa-ellipsis"></i> Detalhes do Pedido #${id}`;
+  corpoModal.innerHTML =
+    '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Carregando...</div>';
+
+  // Esconde o botão "Sim" (pois aqui é detalhe, não exclusão)
+  if (btnSim) btnSim.classList.add("d-none");
+
+  try {
+    // 2. Busca os dados completos do pedido
+    const response = await fetch(apiUrlPedido("pedidos", id));
+    const p = await response.json();
+
+    // 3. Monta o conteúdo detalhado (ajusta os campos conforme o teu banco)
+    corpoModal.innerHTML = `
+            <div class="row g-2">
+                <div class="col-6"><strong>Data:</strong><br> ${p.data}</div>
+                <div class="col-6"><strong>Shaper:</strong><br> ${p.shaper}</div>
+                <hr>
+                <div class="col-6"><strong>Composição:</strong><br> ${p.composicao || "-"}</div>
+                <div class="col-6"><strong>Variação:</strong><br> ${p.variacao || "-"}</div>
+                <div class="col-6"><strong>Acabamento:</strong><br> ${p.acabamento || "-"}</div>
+                <div class="col-6"><strong>Config. Quilha:</strong><br> ${p.configuracaoquilha || "-"}</div>
+                <div class="col-6"><strong>Sistema Quilha:</strong><br> ${p.sistemaquilha || "-"}</div>
+                <hr>
+                <div class="col-12"><strong>Cores:</strong><br> ${p.cores || "-"}</div>
+                <div class="col-12"><strong>Tecidos:</strong><br> ${p.tecidos || "-"}</div>
+                <div class="col-12 mt-2">
+                    <strong>Observação:</strong><br>
+                    <p class="text-muted">${p.observacao || "Sem observações."}</p>
+                </div>
+            </div>
+        `;
+  } catch (error) {
+    corpoModal.innerHTML =
+      '<div class="alert alert-danger">Erro ao carregar detalhes.</div>';
+  }
+
+  // 4. Exibe a modal
+  bootstrap.Modal.getOrCreateInstance(modalEl).show();
 };

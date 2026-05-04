@@ -1,3 +1,10 @@
+<?php
+//força atualização do cache
+header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");    // Data no passado
+?>
+
+
 <script>
     // Usa a variável $base definida na raiz
     window.BASE_URL = window.location.origin + "<?php echo $base; ?>";
@@ -12,11 +19,11 @@
   <title>Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="<?php echo $base; ?>/public/css/Bootstrap.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
   <!-- Choices.js -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/Choices.css" />
 
   <link rel="stylesheet" href="<?php echo $base; ?>/public/css/app.css">
   <link rel="stylesheet" href="<?php echo $base; ?>/public/css/home.css">
@@ -25,18 +32,31 @@
 
 <body id="up">
 
-  <!-- NAVBAR FIXA -->
-  <nav class="navbar navbar-dark bg-dark fixed-top">
+<!-- NAVBAR FIXA -->
+<nav class="navbar navbar-dark bg-dark fixed-top">
     <div class="container-fluid d-flex justify-content-between">
-      <span class="navbar-brand mb-0"> Sistema de Controle de Laminação </span>
-      <div class="d-flex align-items-center gap-3">
-        <span id="usuario-logado" class="text-white small"></span>
-        <button class="btn btn-outline-light btn-sm" onclick="logout()">
-          <i class="fa-solid fa-door-open"></i>
-        </button>
-      </div>
+        <span class="navbar-brand mb-0"> Sistema de Controle de Laminação </span>
+        
+        <div class="d-flex align-items-center gap-3">
+            <!-- MOBILE: Mostra apenas o ícone. O nome aparece ao tocar (Tooltip) -->
+            <span class="text-white d-sm-none" 
+                  id="usuario-mobile-tooltip" 
+                  data-bs-toggle="tooltip" 
+                  data-bs-placement="bottom" 
+                  title="Carregando...">
+                <i class="fa-solid fa-user"></i>
+            </span>
+
+            <!-- DESKTOP: Mostra o texto completo (Some em telas < 576px) -->
+            <span id="usuario-logado" class="text-white small d-none d-sm-inline"></span>
+
+            <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                <i class="fa-solid fa-door-open"></i>
+            </button>
+        </div>
     </div>
-  </nav>
+</nav>
+
 
   <div class="container-fluid">
     <div class="row">
@@ -86,33 +106,43 @@
     </div>
   </div>
 
-  <!-- NAVBAR MOBILE -->
-  <nav class="d-lg-none fixed-bottom bg-white py-4 w-100 nav-bottom">
-    <div class="container d-flex justify-content-center px-2">
-      <ul class="nav nav-pills nav-fill w-100">
-        <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dashboard" onclick="carregarDashboard()">
-            <i class="fa-solid fa-chart-line fa-lg"></i>
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pedido" onclick="carregarPedido()">
-            <i class="fa-solid fa-rectangle-list fa-lg"></i>
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#status" onclick="carregarStatus()">
-            <i class="fa-solid fa-list-ol fa-lg"></i>
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#shaper" onclick="carregarShaper()">
-            <i class="fa-solid fa-mask-face fa-lg"></i>
-          </button>
-        </li>
-      </ul>
+<!-- NAVBAR MOBILE -->
+<nav class="d-lg-none fixed-bottom bg-white w-100 nav-bottom d-flex justify-content-center p-1" style="height: 50px;"> 
+    
+    <!-- align-items-stretch faz a div azul ocupar toda a altura da laranja -->
+    <div class="d-flex align-items-stretch"> 
+        
+        <!-- h-100 faz a ul vermelha ocupar toda a altura da azul -->
+        <ul class="nav nav-pills h-100"> 
+            
+            <li class="nav-item d-flex">
+                <button class="nav-link active h-100" data-bs-toggle="tab" data-bs-target="#dashboard" onclick="carregarDashboard()">
+                    <i class="fa-solid fa-chart-line fa-lg"></i>
+                </button>
+            </li>
+
+            <li class="nav-item d-flex">
+                <button class="nav-link h-100" data-bs-toggle="tab" data-bs-target="#pedido" onclick="carregarPedido()">
+                    <i class="fa-solid fa-box fa-lg"></i>
+                </button>
+            </li>
+
+            <li class="nav-item d-flex">
+                <button class="nav-link h-100" data-bs-toggle="tab" data-bs-target="#status" onclick="carregarStatus()">
+                    <i class="fa-solid fa-list-check fa-lg"></i>
+                </button>
+            </li>
+
+            <li class="nav-item d-flex">
+                <button class="nav-link h-100" data-bs-toggle="tab" data-bs-target="#shaper" onclick="carregarShaper()">
+                    <i class="fa-solid fa-mask-face fa-lg"></i>
+                </button>
+            </li>
+
+        </ul>
     </div>
-  </nav>
+</nav>
+
 
   <!-- TOAST GERAL ALERT -->
   <div class="toast-container position-fixed top-0 end-0 p-3">
@@ -144,8 +174,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
-          <button type="button" class="btn btn-primary" id="btnConfirmarExcluir">Sim</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
         </div>
 
       </div>
@@ -155,8 +184,8 @@
 
 
   <!-- SCRIPTS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script src="<?php echo $base; ?>/public/js/Bootstrap.js"></script>
+  <script src="<?php echo $base; ?>/public/js/Choices.js"></script>
   <script src="<?php echo $base; ?>/public/js/Sortable.min.js"></script>
   <script src="<?php echo $base; ?>/public/js/app.js"></script>
   <script src="<?php echo $base; ?>/public/js/home.js"></script>

@@ -39,6 +39,9 @@
     margin-left: 0;
     width: 100%;
   }
+  .navbar-brand {
+    font-size: 0.9rem;
+  }
   body {
     padding-bottom: 90px;
   }
@@ -78,23 +81,40 @@
   margin-bottom: 0;
 }
 
-/* Ajuste das bordas internas do Choices para colar no botão */
 .input-group-custom .choices__inner {
-  min-height: 32px;
-  padding: 2px 8px;
-  border-radius: 0.25rem 0 0 0.25rem !important; /* Arredonda só a esquerda */
-  border-right: none !important; /* Tira a borda da direita para colar */
+  min-height: 24px; /* O que já definiste */
+  padding: 0px 8px; /* Remove padding vertical */
+  border-radius: 0.25rem 0 0 0.25rem !important;
+  border-right: none !important;
   background-color: #fff;
-  font-size: 0.875rem;
+  font-size: 0.8rem; /* Diminuir um pouco a fonte ajuda na altura */
+  display: flex;
+  align-items: center; /* Centraliza o conteúdo verticalmente */
+}
+
+/* Ajusta o campo de input interno e as tags selecionadas */
+.input-group-custom .choices__input {
+  background-color: transparent;
+  margin-bottom: 0;
+  padding: 0;
+  line-height: 30px; /* Controla a altura da linha do texto */
+}
+
+/* Ajusta a altura das tags (badges) se for multiple */
+.input-group-custom .choices__list--multiple .choices__item {
+  margin-top: 1px;
+  margin-bottom: 1px;
+  padding: 0px 4px;
+  font-size: 0.75rem;
 }
 
 /* Estilo do botão de engrenagem */
 .choice_plus {
   position: static !important;
-  border: 1px solid #ddd;
+  border: 1px solid #6c757d;
   background: #fff;
   color: #666;
-  padding: 0 10px;
+  padding: 0 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,8 +122,11 @@
   cursor: pointer;
   height: auto;
   z-index: 1; /* Fica abaixo do dropdown */
+  font-size: 0.875rem;
 }
-
+.input-group-custom .choices__input::placeholder {
+  color: #222 !important;
+}
 .choice_plus:hover {
   background-color: #f8f9fa;
 }
@@ -127,4 +150,16 @@
   -webkit-user-select: none;
   user-select: none;
   touch-action: none; /* Melhora a resposta ao toque */
+}
+
+.btn-card {
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+}
+
+.btn-card:hover {
+  transform: translateY(-3px);
+  background-color: #f1f3f5 !important;
 }

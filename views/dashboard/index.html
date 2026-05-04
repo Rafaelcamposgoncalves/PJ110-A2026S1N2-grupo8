@@ -1,47 +1,45 @@
 <div class="tab-pane fade show active" id="tab1">
-
     <div class="row g-3 mb-4">
-
-        <div class="col-md-3">
-            <div class="card shadow-sm bg-light">
+        <!-- CARD: TOTAL DE PEDIDOS -->
+        <div class="col-md">
+            <div class="card shadow-sm border-0 bg-light h-100 btn-card" onclick="document.querySelector('[data-bs-target=\'#pedido\']').click()">
                 <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fa-solid fa-box"></i> Total de Pedidos
+                    <h6 class="card-title text-muted text-uppercase small fw-bold">
+                        <i class="fa-solid fa-box me-2"></i> Pedidos
                     </h6>
-                    <h2 id="cardTotalPedidos">0</h2>
+                    <h2 id="cardTotalPedidos" class="fw-bold mb-2">0</h2>
+                    <div style="font-size: 0.85rem;">
+                        <div class="text-warning fw-bold">
+                            <i class="fa-solid fa-clock small"></i> Em Produção: <span id="cardPedidosAbertos">0</span>
+                        </div>
+                        <div class="text-success fw-bold">
+                            <i class="fa-solid fa-circle-check small"></i> Finalizados: <span id="cardPedidosFinalizados">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm bg-light">
+        <!-- CARD: SHAPERS -->
+        <div class="col-md">
+            <div class="card shadow-sm border-0 bg-light h-100 btn-card" onclick="document.querySelector('[data-bs-target=\'#shaper\']').click()">
                 <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fa-solid fa-calendar-day"></i> Pedidos Hoje
+                    <h6 class="card-title text-muted text-uppercase small fw-bold">
+                        <i class="fa-solid fa-mask-face me-2"></i> Shapers
                     </h6>
-                    <h2 id="cardPedidosHoje">0</h2>
+                    <h2 id="cardTotalShapers" class="fw-bold mb-0">0</h2>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm bg-light">
+        <!-- CARD: STATUS CADASTRADOS (Para Gerenciar Etapas) -->
+        <div class="col-md">
+            <div class="card shadow-sm border-0 bg-light h-100 btn-card" onclick="document.querySelector('[data-bs-target=\'#status\']').click()">
                 <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fa-solid fa-mask-face"></i> Total de Shapers
+                    <h6 class="card-title text-muted text-uppercase small fw-bold">
+                        <i class="fa-solid fa-list-check me-2"></i> Status
                     </h6>
-                    <h2 id="cardTotalShapers">0</h2>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm bg-light">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fa-solid fa-chart-simple"></i> Pedidos / Shaper
-                    </h6>
-                    <h2 id="cardMediaShaper">0</h2>
+                    <h2 id="cardTotalStatus" class="fw-bold mb-0">0</h2>
                 </div>
             </div>
         </div>

@@ -94,30 +94,48 @@ class TecidoController {
 
                     break;
 
-                case 'DELETE':
+case 'DELETE':
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(["erro" => "ID não informado"]);
+        return;
+    }
 
-                    if (!$id) {
-                        http_response_code(400);
-                        echo json_encode(["erro" => "ID não informado"]);
-                        return;
-                    }
+    try {
+        // Tenta deletar no Model
+        $ok = $this->model->deletar($id);
 
-                    $ok = $this->model->deletar($id);
+        if ($ok) {
+            echo json_encode(["mensagem" => "Deletado com sucesso"]);
+        } else {
+            // Caso o ID não exista no banco
+            http_response_code(404);
+            echo json_encode(["erro" => "Registro não encontrado"]);
+        }
+    } catch (PDOException $e) {
+        // 🔥 CAPTURA ERRO DE VÍNCULO (Foreign Key Constraint)
+        // SQLSTATE 23000 ou Erro 1451 (MySQL)
+        if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
+            http_response_code(400);
+            echo json_encode([
+                "erro" => "Não é possível excluir este item porque ele já está sendo utilizado em pedidos cadastrados."
+            ]);
+        } else {
+            // Caso ocorra outro erro de banco (ex: conexão perdida)
+            http_response_code(500);
+            echo json_encode([
+                "erro" => "Erro interno no servidor",
+                "detalhe" => $e->getMessage()
+            ]);
+        }
+    }
+    break;
 
-                    if ($ok) {
-                        echo json_encode(["mensagem" => "Deletado com sucesso"]);
-                    } else {
-                        http_response_code(500);
-                        echo json_encode(["erro" => "Erro ao deletar"]);
-                    }
+default:
+    http_response_code(405);
+    echo json_encode(["erro" => "Método não permitido"]);
+    break;
 
-                    break;
-
-                default:
-
-                    http_response_code(405);
-                    echo json_encode(["erro" => "Método não permitido"]);
-                    break;
             }
 
         } catch (PDOException $e) {

@@ -102,3 +102,11 @@ window.logout = async function () {
   // Redireciona sempre para o login usando a base configurada
   window.location.href = `${window.BASE_URL}/login`;
 };
+
+window.setarHoraAtual = function () {
+  const agora = new Date();
+  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset());
+  document.getElementById("statusData").value = agora
+    .toISOString()
+    .slice(0, 16);
+};

@@ -19,26 +19,19 @@ window.listarStatus = async function () {
     const lista = document.getElementById("lista-status");
     if (!lista) return;
 
-    // 1. Limpa a lista
     lista.innerHTML = "";
-
-    // 2. Alimenta a tabela
     data.forEach((s) => {
       const tr = document.createElement("tr");
       tr.setAttribute("data-id", s.id);
-      tr.setAttribute("draggable", "true"); // Força o atributo nativo
-
+      tr.setAttribute("draggable", "true");
       tr.innerHTML = `
-                <td class="reorder-handle" style="cursor: grab;">
-                    <i class="fa-solid fa-grip-vertical text-muted me-2"></i>${s.id}
+                <td class="reorder-handle text-center" style="cursor: grab;">
+                    <i class="fa-solid fa-grip-vertical text-muted me-2"></i>
                 </td>
                 <td>${s.descricao}</td>
-                <td class="col-ordem">${s.ordem}</td>
                 <td class="text-center">
                     <div class="form-check form-switch d-inline-block">
-                        <input class="form-check-input" type="checkbox" role="switch" 
-                            ${s.ativo == 1 ? "checked" : ""} 
-                            onchange="window.alternarAtivoStatus(${s.id}, this.checked)">
+                        <input class="form-check-input" type="checkbox" role="switch" ${s.ativo == 1 ? "checked" : ""} onchange="window.alternarAtivoStatus(${s.id}, this.checked)">
                     </div>
                 </td>
                 <td>
@@ -46,32 +39,28 @@ window.listarStatus = async function () {
                         <button class="btn btn-outline-secondary" onclick='window.editarStatus(${JSON.stringify(s)})'>
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button class="btn btn-outline-danger" onclick='window.deletarStatus(${s.id})'>
+                        <!-- 🔥 AJUSTE: Agora chama abrirModalStatusExcluir em vez de deletarStatus direto -->
+                        <button class="btn btn-outline-danger" onclick='window.abrirModalStatusExcluir(${s.id})'>
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </td>
+                <td class="col-ordem d-none">${s.ordem}</td>
             `;
       lista.appendChild(tr);
     });
 
-    // 3. Reinicializa o Sortable (Garante que a instância antiga não bloqueie a nova)
     if (typeof Sortable !== "undefined") {
       let oldSortable = Sortable.get(lista);
       if (oldSortable) oldSortable.destroy();
-
       new Sortable(lista, {
         animation: 150,
         handle: ".reorder-handle",
         draggable: "tr",
-
-        // --- CONFIGURAÇÕES CRÍTICAS PARA MOBILE ---
-        delay: 200, // Precisa segurar o dedo por 200ms para começar a arrastar
-        delayOnTouchOnly: true, // No PC (mouse) o arrasto continua instantâneo
-        touchStartThreshold: 5, // Se o dedo mover mais de 5px, ele cancela o drag (entende como scroll)
+        delay: 100,
+        delayOnTouchOnly: true,
+        touchStartThreshold: 5,
         direction: "vertical",
-        // ------------------------------------------
-
         onEnd: async function () {
           await window.salvarNovaOrdemStatus();
         },
@@ -81,6 +70,56 @@ window.listarStatus = async function () {
     console.error("Erro ao listar:", error);
   }
 };
+
+// ===============================
+// 🔥 NOVO: GESTÃO DO MODAL DE EXCLUSÃO (IGUAL AO SHAPER)
+// ===============================
+window.abrirModalStatusExcluir = function (id) {
+  const modalElement = document.getElementById("modalStatusExcluirBase");
+  const btnConfirmar = document.getElementById("btnConfirmarExcluirStatus");
+
+  if (btnConfirmar) {
+    btnConfirmar.onclick = async () => {
+      await window.deletarStatus(id);
+      const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+      modalInstance.hide();
+    };
+  }
+  bootstrap.Modal.getOrCreateInstance(modalElement).show();
+};
+
+window.deletarStatus = async (id) => {
+  try {
+    const res = await fetch(apiStatus(id), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ _method: "DELETE" }),
+    });
+
+    // Tenta ler o JSON vindo do PHP
+    const result = await res.json();
+
+    if (res.ok) {
+      // Caso de Sucesso (Status 200)
+      if (typeof showToast === "function") showToast("Sucesso", result);
+      window.listarStatus();
+    } else {
+      // Caso de Erro de Negócio (Status 400 - ex: Status em uso)
+      // Mostra a mensagem exata que veio do PHP
+      if (typeof showToast === "function") {
+        showToast("Atenção", {
+          erro: result.erro || "Impedimento",
+          mensagem: result.mensagem || "Não foi possível excluir.",
+        });
+      }
+    }
+  } catch (error) {
+    // Erro de rede ou crash do servidor
+    console.error("Erro na comunicação:", error);
+  }
+};
+
+// --- Restante das suas funções (Mantidas como no seu código funcional) ---
 
 window.alternarAtivoStatus = async function (id, isChecked) {
   await fetch(apiStatus(id), {
@@ -99,7 +138,8 @@ window.salvarNovaOrdemStatus = async function () {
   const ordens = Array.from(document.querySelectorAll("#lista-status tr")).map(
     (linha, i) => {
       const id = linha.getAttribute("data-id");
-      linha.querySelector(".col-ordem").innerText = i + 1;
+      const colOrdem = linha.querySelector(".col-ordem");
+      if (colOrdem) colOrdem.innerText = i + 1;
       return { id, ordem: i + 1 };
     },
   );
@@ -112,97 +152,62 @@ window.salvarNovaOrdemStatus = async function () {
 
 window.salvarCadastroStatus = async function () {
   const descricao = document.getElementById("descricao").value;
-  const ordem = document.getElementById("ordem").value;
-  if (!descricao) return alert("Preencha a descrição");
 
-  let body = { descricao, ordem, id: window.editIdStatus };
-  if (window.editIdStatus) body._method = "PUT";
+  if (!descricao) {
+    if (typeof showToast === "function")
+      showToast("Atenção", { erro: "Preencha a descrição" });
+    return;
+  }
 
+  let body = { descricao, id: window.editIdStatus };
+  if (window.editIdStatus) {
+    body._method = "PUT";
+    body.ordem = document.getElementById("ordem").value;
+  } else {
+    const linhas = document.querySelectorAll("#lista-status tr");
+    body.ordem = linhas.length + 1;
+  }
   const res = await fetch(apiStatus(window.editIdStatus), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-
   if (res.ok) {
-    window.editIdStatus = null;
-    document.getElementById("descricao").value = "";
-    document.getElementById("btnSubmitStatus").innerHTML =
-      '<i class="fa-solid fa-plus"></i> Cadastrar';
+    window.cancelarEdicaoStatus();
     window.listarStatus();
   }
 };
 
-// Altere a sua função editarStatus existente
 window.editarStatus = function (s) {
   window.editIdStatus = s.id;
   document.getElementById("descricao").value = s.descricao;
   document.getElementById("ordem").value = s.ordem;
-
-  // Altera o botão principal
   document.getElementById("btnSubmitStatus").innerHTML =
     '<i class="fa-solid fa-save"></i> Atualizar';
   document
     .getElementById("btnSubmitStatus")
     .classList.replace("btn-primary", "btn-success");
-
-  // 🔥 MOSTRA o botão cancelar
   document.getElementById("btnCancelarEdicao").classList.remove("d-none");
-
   document.getElementById("descricao").focus();
 };
 
-// 🔥 NOVA FUNÇÃO: Reseta o formulário para o estado de "Cadastrar"
 window.cancelarEdicaoStatus = function () {
   window.editIdStatus = null;
-
-  // Limpa os campos
   document.getElementById("descricao").value = "";
   document.getElementById("ordem").value = "";
-
-  // Volta o botão principal ao normal
   document.getElementById("btnSubmitStatus").innerHTML =
     '<i class="fa-solid fa-plus"></i> Cadastrar';
   document
     .getElementById("btnSubmitStatus")
     .classList.replace("btn-success", "btn-primary");
-
-  // 🔥 ESCONDE o botão cancelar
   document.getElementById("btnCancelarEdicao").classList.add("d-none");
 };
 
-// DICA: Adicione a chamada do cancelar dentro do salvarCadastroStatus após o sucesso:
-// No final do seu 'if (res.ok) { ... }' adicione:
-// window.cancelarEdicaoStatus();
-
-window.deletarStatus = async (id) => {
-  if (!confirm("Tem certeza que deseja excluir este status?")) return;
-
-  try {
-    const res = await fetch(apiStatus(id), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ _method: "DELETE" }),
-    });
-
-    const result = await res.json();
-
-    if (res.ok) {
-      if (typeof showToast === "function")
-        showToast("Status", { mensagem: result.mensagem });
-      window.listarStatus();
-    } else {
-      // Aqui ele captura a mensagem de "Não é possível excluir..." enviada pelo PHP
-      if (typeof showToast === "function") {
-        showToast("Status", {
-          erro: result.erro,
-          mensagem: result.mensagem,
-        });
-      }
-    }
-  } catch (error) {
-    console.error("Erro ao deletar:", error);
-    if (typeof showToast === "function")
-      showToast("Erro", { erro: "Falha na comunicação com o servidor." });
-  }
+window.buscarStatus = function () {
+  const termo = document.getElementById("buscarStatus").value.toLowerCase();
+  const linhas = document.querySelectorAll("#lista-status tr");
+  linhas.forEach((linha) => {
+    const textoLinha = linha.textContent.toLowerCase();
+    linha.style.display = textoLinha.includes(termo) ? "" : "none";
+  });
 };

@@ -265,9 +265,15 @@
                     <input type="text" id="statusDescricao" class="form-control form-control-sm" disabled tabindex="-1">
                 </div>
                 <div class="mb-2">
-                    <label class="form-label">Data e Hora</label>
+                    <label class="form-label d-flex justify-content-between">
+                        Data e Hora
+                        <a href="javascript:void(0)" onclick="window.setarHoraAtual()" class="text-decoration-none small">
+                            <i class="fa-solid fa-clock"></i> Agora
+                        </a>
+                    </label>
                     <input type="datetime-local" id="statusData" class="form-control form-control-sm">
                 </div>
+
                 <div class="mb-2">
                     <label class="form-label">Observação</label>
                     <textarea id="statusObs" class="form-control form-control-sm" rows="3"></textarea>
@@ -285,26 +291,62 @@
 
 
 <!--MODAL EXCLUIR STATUS-->
-<div class="modal fade" id="modalStatusExcluir" tabindex="-1">
+
+<div class="modal fade" id="modalStatusExcluir" tabindex="-1" aria-labelledby="titulomodal" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
-
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fa-regular fa-trash-can"></i> Excluir
+                <h5 class="modal-title" id="titulomodal">
+                    <i class="fa-regular fa-trash-can"></i> Excluir Status
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
             <div class="modal-body">
                 <p>Tem certeza que deseja realmente excluir o status do pedido?</p>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
                 <button type="button" class="btn btn-primary" id="btnConfirmarExcluir">Sim</button>
             </div>
+        </div>
+    </div>
+</div>
 
+
+<!-- MODAL EXCLUIR PEDIDO -->
+<div class="modal fade" id="modalPedidoExcluir" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-regular fa-trash-can"></i> Excluir Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja realmente excluir este pedido?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarDeletarPedido">Sim</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EXCLUSIVO PARA ITENS DE GERENCIAMENTO (COMPOSIÇÃO, VARIAÇÃO, ETC) -->
+<div class="modal fade" id="modalExcluirGerenciamento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-trash-can"></i> Excluir</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Deseja realmente excluir este item?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarExcluirGerenciamento">Sim, Excluir</button>
+            </div>
         </div>
     </div>
 </div>

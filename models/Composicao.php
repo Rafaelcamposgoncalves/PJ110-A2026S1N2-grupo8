@@ -105,16 +105,14 @@ class Composicao {
     /* =========================
        DELETAR
     ========================= */
-    public function deletar($id) {
+public function deletar($id) {
+    // O SQL deve ser simples
+    $sql = "DELETE FROM {$this->table} WHERE id_composicao = :id";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    
+    // 🔥 IMPORTANTE: O execute() lançará a PDOException que o Controller vai pegar
+    return $stmt->execute(); 
+}
 
-        $sql = "
-            DELETE FROM {$this->table}
-            WHERE id_composicao = :id
-        ";
-
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-
-        return $stmt->execute();
-    }
 }

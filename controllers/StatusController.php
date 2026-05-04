@@ -49,23 +49,21 @@ class StatusController {
                     echo json_encode($ok ? ["mensagem" => "Atualizado"] : ["erro" => "Falha"]);
                     break;
 
-                case 'DELETE':
-                    try {
-                        $finalId = $id ?? $input['id'] ?? null;
-                        $ok = $this->model->deletar($finalId);
-                        echo json_encode(["mensagem" => "Status excluído com sucesso!"]);
-                    } catch (PDOException $e) {
-                        // Erro 1451: Restrição de integridade (foreign key constraint)
-                        if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
-                            http_response_code(400); // Bad Request (erro do lado do cliente/regra de negócio)
-                            echo json_encode([
-                                "erro" => "Não é possível excluir um status em uso. Este status possui vínculos com pedidos existentes. Para ocultá-lo, utilize a opção de desativar."                                
-                            ]);
-                        } else {
-                            throw $e; // Lança outros erros genéricos
-                        }
-                    }
-                    break;
+case 'DELETE':
+    try {
+        $finalId = $id ?? $input['id'] ?? null;
+        $this->model->deletar($finalId);
+        echo json_encode(["mensagem" => "Status excluído com sucesso!"]);
+// No StatusController.php, dentro do case 'DELETE'
+} catch (PDOException $e) {
+    http_response_code(400); 
+    echo json_encode([
+        "erro" => "Não é possível excluir um status em uso. Este registro possui vínculos com pedidos existentes. Para ocultá-lo, utilize a opção de desativar."
+    ]);
+}
+
+    break;
+
 
             }
         } catch (Exception $e) {

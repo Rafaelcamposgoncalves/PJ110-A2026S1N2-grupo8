@@ -8,6 +8,15 @@ body {
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1040;
 }
+
+.nav-bottom .nav-link {
+  display: flex;
+  align-items: center; /* Centraliza o ícone verticalmente */
+  justify-content: center;
+  padding: 0 20px; /* Dá o respiro lateral nos botões */
+  /*border-radius: 0; /* Opcional: remove arredondamento se quiser preencher os cantos */
+}
+
 /* Garante que o Toast apareça na frente da navbar e sidebar */
 .toast-container {
   z-index: 2000 !important;
