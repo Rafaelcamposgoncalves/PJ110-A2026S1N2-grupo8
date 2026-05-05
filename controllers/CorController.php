@@ -35,23 +35,55 @@ class CorController {
 
             switch ($method) {
 
-                case 'GET':
+/* ... dentro do switch ($method) ... */
 
-                    if ($id) {
-                        $data = $this->model->buscar($id);
+case 'GET':
+    if ($id) {
+        $data = $this->model->buscar($id);
+        if (!$data) {
+            http_response_code(404);
+            echo json_encode(["erro" => "Não encontrado"]);
+            return;
+        }
+        echo json_encode($data);
+        return;
+    }
+    // 🔥 Suporte ao filtro de ativos (?somenteAtivos=1)
+    $apenasAtivos = isset($_GET['somenteAtivos']) && $_GET['somenteAtivos'] == '1';
+    echo json_encode($this->model->listar($apenasAtivos));
+    break;
 
-                        if (!$data) {
-                            http_response_code(404);
-                            echo json_encode(["erro" => "Não encontrado"]);
-                            return;
-                        }
+case 'PUT':
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(["erro" => "ID não informado"]);
+        return;
+    }
 
-                        echo json_encode($data);
-                        return;
-                    }
+    // 🔥 NOVO: Suporte ao Switch de Ativar/Desativar
+    if (isset($input['somenteAtivo'])) {
+        $ok = $this->model->atualizarAtivo($id, $input['ativo']);
+        echo json_encode($ok ? ["mensagem" => "Status atualizado"] : ["erro" => "Falha"]);
+        return;
+    }
 
-                    echo json_encode($this->model->listar());
-                    break;
+    if (empty($input['descricao'])) {
+        http_response_code(400);
+        echo json_encode(["erro" => "Dados inválidos"]);
+        return;
+    }
+
+    $ok = $this->model->atualizar($id, $input['descricao']);
+    if ($ok) {
+        echo json_encode(["mensagem" => "Atualizado com sucesso"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["erro" => "Erro ao atualizar"]);
+    }
+    break;
+
+/* ... o case 'DELETE' continua EXATAMENTE como o teu código original ... */
+
 
                 case 'POST':
 

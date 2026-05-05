@@ -89,46 +89,54 @@ window.listarPedidosStatus = async function () {
         }
 
         timelineHTML += `
-    <div class="rtimeline">
-        <div class="row">
-            <div class="col-auto d-none d-md-block">
-                <span class="badge rounded-pill text-bg-light">
-                    ${st.data ? new Date(st.data).toLocaleString("pt-BR") : ""}
-                </span>
-            </div>
-            <div class="col-auto circle"><div></div></div>
-            <div class="col-auto icon">
-                ${iconeHTML}
-            </div>
-            <div class="col col-lg-6">
-                <div class="card text-bg-light shadow-sm">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-6">
-                                <h5 class="card-title">${st.descricao}</h5>
-                            </div>
-                            <div class="col-6">
-                                <h6 class="card-subtitle mb-2 text-body-secondary float-start float-md-end d-md-none">${st.data ? new Date(st.data).toLocaleString("pt-BR") : ""}</h6>
-                            </div>
+<div class="rtimeline mb-3">
+    <div class="row">
+        <div class="col-auto d-none d-md-block">
+            <span class="badge rounded-pill text-bg-light">
+                ${st.data ? new Date(st.data).toLocaleString("pt-BR") : ""}
+            </span>
+        </div>
+        <div class="col-auto circle"><div></div></div>
+        <div class="col-auto icon">
+            ${iconeHTML}
+        </div>
+        <div class="col col-lg-6">
+            <div class="card text-bg-light shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6 col-md-12">
+                            <h5 class="card-title">${st.descricao}</h5>
                         </div>
-                        <p class="card-text">${st.observacao ?? ""}</p>
+                        <div class="col-sm-6 col-md-12">
+                            <h6 class="card-subtitle mb-2 text-body-secondary float-start float-md-end d-md-none">
+                                ${st.data ? new Date(st.data).toLocaleString("pt-BR") : ""}
+                            </h6>
+                        </div>
+                    </div>
+                    <p class="card-text">${st.observacao ?? ""}</p>
+                </div>
+                
+                <!-- FOOTER AJUSTADO: Alinhado à direita e fundo transparente -->
+                <div class="card-footer bg-transparent border-top-0 d-flex justify-content-end pb-3">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary js-editar-status" 
+                            data-id="${pedido.id_pedido}" 
+                            data-status-id="${st.id_pedido_status}">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        ${
+                          isMaisRecente
+                            ? `<button class="btn btn-outline-danger" onclick="window.abrirModalPedidoStatusExcluir(${st.id_pedido_status})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>`
+                            : `<button class="btn btn-outline-danger" disabled><i class="fa-solid fa-trash"></i></button>`
+                        }
                     </div>
                 </div>
             </div>
-            <div class="col-auto">
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary js-editar-status" data-id="${pedido.id_pedido}" data-status-id="${st.id_pedido_status}">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                    ${
-                      isMaisRecente
-                        ? `<button class="btn btn-outline-danger" onclick="window.abrirModalPedidoStatusExcluir(${st.id_pedido_status})"><i class="fa-solid fa-trash"></i></button>`
-                        : `<button class="btn btn-outline-danger" disabled><i class="fa-solid fa-trash"></i></button>`
-                    }
-                </div>
-            </div>
         </div>
-    </div>`;
+    </div>
+</div>`;
       });
 
       timelineHTML += "</div>";

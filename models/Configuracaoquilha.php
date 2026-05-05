@@ -1,120 +1,54 @@
 <?php
-
 class Configuracaoquilha {
-
     private $conn;
     private $table = "configuracaoquilha";
 
-    public function __construct($db) {
-        $this->conn = $db;
-    }
+    public function __construct($db) { $this->conn = $db; }
 
-    /* =========================
-       LISTAR
-    ========================= */
-    public function listar() {
-
-        $sql = "
-            SELECT id_configuracaoquilha, descricao 
-            FROM {$this->table}
-        ";
-
+    public function listar($apenasAtivos = false) {
+        $sql = "SELECT id_configuracaoquilha, descricao, ativo FROM {$this->table} ";
+        if ($apenasAtivos) $sql .= " WHERE ativo = 1 ";
+        $sql .= " ORDER BY descricao ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
-
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /* =========================
-       BUSCAR
-    ========================= */
     public function buscar($id) {
-
-        $sql = "
-            SELECT id_configuracaoquilha, descricao 
-            FROM {$this->table}
-            WHERE id_configuracaoquilha = :id
-        ";
-
+        $sql = "SELECT * FROM {$this->table} WHERE id_configuracaoquilha = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $id);
         $stmt->execute();
-
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-	
-	/* =========================
-	   BUSCAR POR TODOS OS CAMPOS (LIKE)
-	   ========================= */
-	public function buscarPorCampos($termo) {
 
-		$termo = "%{$termo}%"; // para usar no LIKE
-
-		$sql = "
-			SELECT id_configuracaoquilha, descricao
-			FROM {$this->table}
-			WHERE descricao LIKE :termo
-		";
-
-		$stmt = $this->conn->prepare($sql);
-		$stmt->bindParam(':termo', $termo, PDO::PARAM_STR);
-		$stmt->execute();
-
-		return $stmt->fetchAll(PDO::FETCH_ASSOC);
-	}	
-
-    /* =========================
-       CRIAR
-    ========================= */
-    public function criar($descricao) {
-
-        $sql = "
-            INSERT INTO {$this->table} (descricao)
-            VALUES (:descricao)
-        ";
-
+    public function criar($desc) {
+        $sql = "INSERT INTO {$this->table} (descricao, ativo) VALUES (:desc, 1)";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':descricao', $descricao);
-
-        if ($stmt->execute()) {
-            return $this->conn->lastInsertId();
-        }
-
-        return false;
+        $stmt->bindParam(':desc', $desc);
+        return $stmt->execute();
     }
 
-    /* =========================
-       ATUALIZAR
-    ========================= */
-    public function atualizar($id, $descricao) {
-
-        $sql = "
-            UPDATE {$this->table}
-            SET descricao = :descricao
-            WHERE id_configuracaoquilha = :id
-        ";
-
+    public function atualizar($id, $desc) {
+        $sql = "UPDATE {$this->table} SET descricao = :desc WHERE id_configuracaoquilha = :id";
         $stmt = $this->conn->prepare($sql);
-
-        $stmt->bindParam(':descricao', $descricao);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-
+        $stmt->bindParam(':desc', $desc);
+        $stmt->bindParam(':id', $id);
         return $stmt->execute();
-}
+    }
 
-    /* =========================
-       DELETAR
-    ========================= */
-    public function deletar($id) {
-
-        $sql = "
-            DELETE FROM {$this->table}
-            WHERE id_configuracaoquilha = :id
-        ";
-
+    public function atualizarAtivo($id, $ativo) {
+        $sql = "UPDATE {$this->table} SET ativo = :ativo WHERE id_configuracaoquilha = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':ativo', $ativo, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $id);
+        return $stmt->execute();
+    }
 
+    public function deletar($id) {
+        $sql = "DELETE FROM {$this->table} WHERE id_configuracaoquilha = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id);
         return $stmt->execute();
     }
 }

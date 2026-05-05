@@ -163,3 +163,18 @@
   transform: translateY(-3px);
   background-color: #f1f3f5 !important;
 }
+
+/* Garante que o painel ativo apareça e os outros sumam */
+.tab-pane {
+  display: none;
+}
+.tab-pane.active.show {
+  display: block !important;
+  opacity: 1;
+}
+
+/* Opcional: Garante que os links do menu fiquem azuis quando ativos */
+.nav-pills .nav-link.active {
+  background-color: #0d6efd !important;
+  color: white !important;
+}

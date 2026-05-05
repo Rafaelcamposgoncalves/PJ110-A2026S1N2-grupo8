@@ -1,164 +1,74 @@
- <?php
-
+<?php
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Sistemaquilha.php';
 
 class SistemaquilhaController {
-
     private $model;
 
     public function __construct() {
-
         $database = new Database();
         $db = $database->connect();
-
         $this->model = new Sistemaquilha($db);
     }
 
     public function processRequest($method, $id = null) {
-
         header("Content-Type: application/json; charset=UTF-8");
+        $input = json_decode(file_get_contents("php://input"), true) ?? $_POST;
 
-        $inputJSON = file_get_contents("php://input");
-        $input = json_decode($inputJSON, true);
-
-        if (!is_array($input)) {
-            $input = $_POST;
-        }
-
-        // 🔥 AJUSTE IMPORTANTE: suporte a DELETE via _method
         if ($method === 'POST' && isset($input['_method'])) {
             $method = strtoupper($input['_method']);
         }
 
         try {
-
             switch ($method) {
-
                 case 'GET':
-
                     if ($id) {
-                        $data = $this->model->buscar($id);
-
-                        if (!$data) {
-                            http_response_code(404);
-                            echo json_encode(["erro" => "Não encontrado"]);
-                            return;
-                        }
-
-                        echo json_encode($data);
-                        return;
+                        echo json_encode($this->model->buscar($id));
+                    } else {
+                        // 🔥 Filtro de Ativos
+                        $apenasAtivos = isset($_GET['somenteAtivos']) && $_GET['somenteAtivos'] == '1';
+                        echo json_encode($this->model->listar($apenasAtivos));
                     }
-
-                    echo json_encode($this->model->listar());
                     break;
 
                 case 'POST':
+                    $ok = $this->model->criar($input['descricao']);
+                    echo json_encode($ok ? ["mensagem" => "Criado com sucesso"] : ["erro" => "Falha ao criar"]);
+                    break;
 
-                    if (empty($input['descricao'])) {
+                case 'PUT':
+                    if (!$id) {
                         http_response_code(400);
-                        echo json_encode(["erro" => "Descrição obrigatória"]);
+                        echo json_encode(["erro" => "ID não informado"]);
                         return;
                     }
 
-                    $ok = $this->model->criar($input['descricao']);
-
-                    if ($ok) {
-                        echo json_encode([
-                            "mensagem" => "Criado com sucesso",
-                            "id" => $this->model->lastInsertId ?? null
-                        ]);
-                    } else {
-                        http_response_code(500);
-                        echo json_encode(["erro" => "Erro ao criar"]);
-                    }
-
-                    break;
-
-                    case 'PUT':
-
-                    if (!$id || empty($input['descricao'])) {
-                        http_response_code(400);
-                        echo json_encode(["erro" => "Dados inválidos"]);
+                    // 🔥 Bloqueio (Switch Ativo/Inativo)
+                    if (isset($input['somenteAtivo'])) {
+                        $ok = $this->model->atualizarAtivo($id, $input['ativo']);
+                        echo json_encode($ok ? ["mensagem" => "Status atualizado"] : ["erro" => "Falha"]);
                         return;
                     }
 
                     $ok = $this->model->atualizar($id, $input['descricao']);
-
-                    if ($ok) {
-                        echo json_encode(["mensagem" => "Atualizado com sucesso"]);
-                    } else {
-                        http_response_code(500);
-                        echo json_encode(["erro" => "Erro ao atualizar"]);
-                    }
-
+                    echo json_encode($ok ? ["mensagem" => "Atualizado"] : ["erro" => "Falha"]);
                     break;
 
-                    case 'DELETE':
-                        if (!$id) {
+                case 'DELETE':
+                    try {
+                        $ok = $this->model->deletar($id);
+                        echo json_encode($ok ? ["mensagem" => "Deletado"] : ["erro" => "Não encontrado"]);
+                    } catch (PDOException $e) {
+                        if ($e->getCode() == "23000") {
                             http_response_code(400);
-                            echo json_encode(["erro" => "ID não informado"]);
-                            return;
-                        }
-
-                        try {
-                            // Tenta deletar no Model
-                            $ok = $this->model->deletar($id);
-
-                            if ($ok) {
-                                echo json_encode(["mensagem" => "Sistema de quilha excluído com sucesso"]);
-                            } else {
-                                // Caso o ID não exista no banco
-                                http_response_code(404);
-                                echo json_encode(["erro" => "Registro não encontrado"]);
-                            }
-                        } catch (PDOException $e) {
-                            // 🔥 CAPTURA ERRO DE VÍNCULO (Foreign Key Constraint)
-                            // SQLSTATE 23000 / Erro 1451 (MySQL)
-                            if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
-                                http_response_code(400);
-                                echo json_encode([
-                                    "erro" => "Não é possível excluir este sistema de quilha porque ele já está sendo utilizado em pedidos cadastrados."
-                                ]);
-                            } else {
-                                // Outros erros de banco
-                                http_response_code(500);
-                                echo json_encode([
-                                    "erro" => "Erro interno no servidor",
-                                    "detalhe" => $e->getMessage()
-                                ]);
-                            }
-                        }
-                        break;
-
-                    default:
-                        http_response_code(405);
-                        echo json_encode(["erro" => "Método não permitido"]);
-                        break;
-
+                            echo json_encode(["erro" => "Impedimento", "mensagem" => "Este sistema está em uso."]);
+                        } else { throw $e; }
+                    }
+                    break;
             }
-
-        } catch (PDOException $e) {
-
-            $codigo = $e->errorInfo[1] ?? null;
-
-            if ($codigo == 1062) {
-
-                preg_match("/for key '(.+?)'/", $e->getMessage(), $matches);
-                $campo = $matches[1] ?? "campo único";
-
-                http_response_code(409);
-                echo json_encode([
-                    "erro" => "Já existe um registro com esse valor ($campo)"
-                ]);
-                return;
-            }
-
+        } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode([
-                "erro" => "Erro interno",
-                "detalhe" => $e->getMessage()
-            ]);
+            echo json_encode(["erro" => $e->getMessage()]);
         }
     }
 }

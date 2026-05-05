@@ -1,165 +1,65 @@
 <?php
-
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Acabamento.php';
 
 class AcabamentoController {
-
     private $model;
 
     public function __construct() {
-
         $database = new Database();
         $db = $database->connect();
-
         $this->model = new Acabamento($db);
     }
 
     public function processRequest($method, $id = null) {
-
         header("Content-Type: application/json; charset=UTF-8");
+        $input = json_decode(file_get_contents("php://input"), true) ?? $_POST;
 
-        $inputJSON = file_get_contents("php://input");
-        $input = json_decode($inputJSON, true);
-
-        if (!is_array($input)) {
-            $input = $_POST;
-        }
-
-        // 🔥 AJUSTE IMPORTANTE: suporte a DELETE via _method
         if ($method === 'POST' && isset($input['_method'])) {
             $method = strtoupper($input['_method']);
         }
 
         try {
-
             switch ($method) {
-
                 case 'GET':
-
                     if ($id) {
-                        $data = $this->model->buscar($id);
-
-                        if (!$data) {
-                            http_response_code(404);
-                            echo json_encode(["erro" => "Não encontrado"]);
-                            return;
-                        }
-
-                        echo json_encode($data);
-                        return;
+                        echo json_encode($this->model->buscar($id));
+                    } else {
+                        $apenasAtivos = isset($_GET['somenteAtivos']) && $_GET['somenteAtivos'] == '1';
+                        echo json_encode($this->model->listar($apenasAtivos));
                     }
-
-                    echo json_encode($this->model->listar());
                     break;
 
                 case 'POST':
-
-                    if (empty($input['descricao'])) {
-                        http_response_code(400);
-                        echo json_encode(["erro" => "Descrição obrigatória"]);
-                        return;
-                    }
-
                     $ok = $this->model->criar($input['descricao']);
-
-                    if ($ok) {
-                        echo json_encode([
-                            "mensagem" => "Criado com sucesso",
-                            "id" => $this->model->lastInsertId ?? null
-                        ]);
-                    } else {
-                        http_response_code(500);
-                        echo json_encode(["erro" => "Erro ao criar"]);
-                    }
-
+                    echo json_encode($ok ? ["mensagem" => "Criado"] : ["erro" => "Falha"]);
                     break;
 
-                    case 'PUT':
-
-                    if (!$id || empty($input['descricao'])) {
-                        http_response_code(400);
-                        echo json_encode(["erro" => "Dados inválidos"]);
-                        return;
-                    }
-
-                    $ok = $this->model->atualizar($id, $input['descricao']);
-
-                    if ($ok) {
-                        echo json_encode(["mensagem" => "Atualizado com sucesso"]);
+                case 'PUT':
+                    if (isset($input['somenteAtivo'])) {
+                        $ok = $this->model->atualizarAtivo($id, $input['ativo']);
+                        echo json_encode($ok ? ["mensagem" => "Status atualizado"] : ["erro" => "Falha"]);
                     } else {
-                        http_response_code(500);
-                        echo json_encode(["erro" => "Erro ao atualizar"]);
+                        $ok = $this->model->atualizar($id, $input['descricao']);
+                        echo json_encode($ok ? ["mensagem" => "Atualizado"] : ["erro" => "Falha"]);
                     }
-
                     break;
 
-                    case 'DELETE':
-                        if (!$id) {
+                case 'DELETE':
+                    try {
+                        $ok = $this->model->deletar($id);
+                        echo json_encode($ok ? ["mensagem" => "Deletado"] : ["erro" => "Não encontrado"]);
+                    } catch (PDOException $e) {
+                        if ($e->getCode() == "23000") {
                             http_response_code(400);
-                            echo json_encode(["erro" => "ID não informado"]);
-                            return;
-                        }
-
-                        try {
-                            // Executa a deleção no Model
-                            $ok = $this->model->deletar($id);
-
-                            if ($ok) {
-                                echo json_encode(["mensagem" => "Acabamento deletado com sucesso"]);
-                            } else {
-                                // Se o ID não existir mais no banco
-                                http_response_code(404);
-                                echo json_encode(["erro" => "Registro não encontrado"]);
-                            }
-                        } catch (PDOException $e) {
-                            // 🔥 CAPTURA ERRO DE VÍNCULO (Foreign Key Constraint)
-                            // SQLSTATE 23000 é o código geral para violação de integridade
-                            // 1451 é o erro específico do MySQL para "Cannot delete or update a parent row"
-                            if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
-                                http_response_code(400);
-                                echo json_encode([
-                                    "erro" => "Não é possível excluir este acabamento porque ele já está sendo utilizado em pedidos cadastrados."
-                                ]);
-                            } else {
-                                // Caso seja outro erro de banco (ex: conexão perdida)
-                                http_response_code(500);
-                                echo json_encode([
-                                    "erro" => "Erro interno no servidor",
-                                    "detalhe" => $e->getMessage()
-                                ]);
-                            }
-                        }
+                            echo json_encode(["erro" => "Bloqueado", "mensagem" => "Acabamento em uso em pedidos."]);
+                        } else { throw $e; }
+                    }
                     break;
-
-                    default:
-                        http_response_code(405);
-                        echo json_encode(["erro" => "Método não permitido"]);
-                        break;
-
             }
-
-        } catch (PDOException $e) {
-
-            $codigo = $e->errorInfo[1] ?? null;
-
-            if ($codigo == 1062) {
-
-                preg_match("/for key '(.+?)'/", $e->getMessage(), $matches);
-                $campo = $matches[1] ?? "campo único";
-
-                http_response_code(409);
-                echo json_encode([
-                    "erro" => "Já existe um registro com esse valor ($campo)"
-                ]);
-                return;
-            }
-
+        } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode([
-                "erro" => "Erro interno",
-                "detalhe" => $e->getMessage()
-            ]);
+            echo json_encode(["erro" => $e->getMessage()]);
         }
     }
 }

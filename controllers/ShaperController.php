@@ -34,8 +34,10 @@ class ShaperController {
                         echo json_encode($data);
                     }
                 } else {
-                    // 🔥 FILTRO DE ATIVOS: Se passar ?ativos=true na URL, filtra no banco
-                    if (isset($_GET['ativos']) && $_GET['ativos'] === 'true') {
+                    // 🔥 PADRONIZADO: Aceita somenteAtivos=1 (igual aos outros campos)
+                    // Se vier qualquer um dos dois (ativos=true ou somenteAtivos=1), ele filtra
+                    if ((isset($_GET['ativos']) && $_GET['ativos'] === 'true') || 
+                        (isset($_GET['somenteAtivos']) && $_GET['somenteAtivos'] === '1')) {
                         $data = $this->shaper->listarAtivos();
                     } else {
                         $data = $this->shaper->listar();
@@ -43,6 +45,7 @@ class ShaperController {
                     echo json_encode($data);
                 }
                 break;
+
 
             case 'POST':
                 if (!isset($input['nome'], $input['email'], $input['telefone'])) {

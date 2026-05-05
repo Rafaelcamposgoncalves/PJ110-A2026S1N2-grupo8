@@ -30,6 +30,14 @@
         <!-- STATUS -->
         <div class="tab-pane fade show active" id="tabPedidoStatus">
             <div class="container-fluid">
+                <div class="input-group input-group-sm mb-3">
+                    <!-- O ID tem de ser exatamente igual ao do JS -->
+                    <input type="text" id="inputBuscaPedido" class="form-control" placeholder="Buscar pedido ou shaper...">
+                    <button class="btn btn-primary" type="button" onclick="window.executarBuscaPedido()">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+
                 <div class="accordion accordion-flush" id="accordionPanelsStayOpenExample">
 
                 </div>
@@ -55,13 +63,10 @@
                             </div>
 
                             <div class="col-md-5">
-                                <label class="form-label">Shaper</label>
+                                <label class="form-label">Shaper/Cliente</label>
                                 <div class="input-group input-group-sm mb-3">
                                     <select id="id_shaperPedido" class="form-control">
                                     </select>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="abrirShaper()">
-                                        <i class="fa-solid fa-gear"></i>
-                                    </button>
                                 </div>
                             </div>
 
@@ -177,7 +182,7 @@
                         <tr>
                             <th>Pedido</th>
                             <th>Data</th>
-                            <th>Shaper</th>
+                            <th>Shaper/Cliente</th>
                             <th>Observação</th>
                             <th width="100">Ações</th>
                         </tr>
@@ -199,28 +204,23 @@
 <div class="modal fade" id="modalGenerico" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h5 class="modal-title">Gerenciar Composição</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body">
-
                 <!-- FORM -->
                 <div class="row g-2 mb-3">
                     <div class="col">
-                        <input type="text" id="modalInput" class="form-control form-control-sm" placeholder="Digite a composição">
+                        <input type="text" id="modalInput" class="form-control form-control-sm" placeholder="Digite a descrição">
                     </div>
                     <div class="col-auto">
-                        <div class="col-auto">
-                            <button id="btnSalvarComposicao" class="btn btn-sm btn-primary" onclick="salvarComposicao()">
-                                <i class="fa-solid fa-plus"></i> Cadastrar
-                            </button>
-                            <button id="btnCancelarComposicao" class="btn btn-sm btn-outline-secondary d-none" onclick="cancelarEdicaoComposicao()">
-                                Cancelar
-                            </button>
-                        </div>
+                        <button id="btnSalvarComposicao" class="btn btn-sm btn-primary" onclick="salvarComposicao()">
+                            <i class="fa-solid fa-plus"></i> Cadastrar
+                        </button>
+                        <button id="btnCancelarComposicao" class="btn btn-sm btn-outline-secondary d-none" onclick="cancelarEdicaoComposicao()">
+                            Cancelar
+                        </button>
                     </div>
                 </div>
 
@@ -229,20 +229,20 @@
                     <table class="table table-sm table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>ID</th>
+                                <th width="50">ID</th>
                                 <th>Descrição</th>
-                                <th width="120">Ações</th>
+                                <th width="100" class="text-center">Ativo</th> <!-- NOVA COLUNA -->
+                                <th width="120" class="text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="listaComposicoesModal"></tbody>
                     </table>
                 </div>
-
             </div>
-
         </div>
     </div>
 </div>
+
 
 <!--MODAL EDITAR STATUS-->
 <div class="modal fade" id="modalStatus" tabindex="-1">

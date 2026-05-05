@@ -25,8 +25,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");    // Data no passado
   <!-- Choices.js -->
   <link rel="stylesheet" href="<?php echo $base; ?>/public/css/Choices.css" />
 
-  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/app.css">
-  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/home.css">
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/app.css?v=1.0.3">
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/home.css?v=1.0.3">
   <link rel="stylesheet" href="<?php echo $base; ?>/lib/rtimeline/css/rtimeline.css">
 </head>
 
@@ -80,7 +80,7 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");    // Data no passado
           </li>
           <li class="nav-item">
             <button class="nav-link w-100 text-start" data-bs-toggle="tab" data-bs-target="#shaper" onclick="carregarShaper()">
-              <i class="fa-solid fa-mask-face"></i> Shaper
+              <i class="fa-solid fa-mask-face"></i> Shaper/Cliente
             </button>
           </li>
         </ul>
@@ -174,6 +174,9 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");    // Data no passado
         </div>
 
         <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="imprimirDetalhePedido()">
+            <i class="fa-solid fa-print"></i> Imprimir / PDF
+          </button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
         </div>
 

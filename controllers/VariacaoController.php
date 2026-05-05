@@ -25,7 +25,24 @@ class VariacaoController {
 
         try {
             switch ($method) {
+                /* ================= LISTAR / BUSCAR ================= */
                 case 'GET':
+                    if ($id) {
+                        $data = $this->model->buscar($id);
+                        if (!$data) {
+                            http_response_code(404);
+                            echo json_encode(["erro" => "Não encontrado"]);
+                            return;
+                        }
+                        echo json_encode($data);
+                    } else {
+                        // 🔥 NOVO: Captura se deve filtrar apenas ativos
+                        $apenasAtivos = isset($_GET['somenteAtivos']) && $_GET['somenteAtivos'] == '1';
+                        echo json_encode($this->model->listar($apenasAtivos));
+                    }
+                    break;
+
+
                     if ($id) {
                         $data = $this->model->buscar($id);
                         if (!$data) {
@@ -58,11 +75,26 @@ class VariacaoController {
                     break;
 
                 case 'PUT':
-                    if (!$id || empty($input['descricao'])) {
+                    if (!$id) {
                         http_response_code(400);
-                        echo json_encode(["erro" => "Dados inválidos"]);
+                        echo json_encode(["erro" => "ID não informado"]);
                         return;
                     }
+
+                    // 🔥 NOVO: Caso venha do Switch (Ativar/Desativar)
+                    if (isset($input['somenteAtivo'])) {
+                        $ok = $this->model->atualizarAtivo($id, $input['ativo']);
+                        echo json_encode($ok ? ["mensagem" => "Status atualizado"] : ["erro" => "Falha ao atualizar status"]);
+                        return;
+                    }
+
+                    // Caso venha do formulário de edição normal
+                    if (empty($input['descricao'])) {
+                        http_response_code(400);
+                        echo json_encode(["erro" => "Descrição obrigatória"]);
+                        return;
+                    }
+
                     $ok = $this->model->atualizar($id, $input['descricao']);
                     if ($ok) {
                         echo json_encode(["mensagem" => "Atualizado com sucesso"]);
@@ -78,7 +110,6 @@ class VariacaoController {
                         echo json_encode(["erro" => "ID não informado"]);
                         return;
                     }
-
                     try {
                         $ok = $this->model->deletar($id);
                         if ($ok) {
@@ -88,7 +119,6 @@ class VariacaoController {
                             echo json_encode(["erro" => "Registro não encontrado"]);
                         }
                     } catch (PDOException $e) {
-                        // SQLSTATE 23000 ou erro 1451: Restrição de chave estrangeira
                         if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
                             http_response_code(400);
                             echo json_encode([

@@ -128,6 +128,14 @@ if (window.PEDIDO_MODULE_LOADED) {
                 </button>
             </div>
         </td>
+        <td class="text-center align-middle">
+            <div class="form-check form-switch d-inline-block">
+                <input class="form-check-input" type="checkbox" role="switch" 
+                    ${item.ativo == 1 ? "checked" : ""} 
+                    onchange="window.alternarAtivoGenerico(${idReal}, this.checked)">
+            </div>
+        </td>
+
     </tr>`;
     });
   }
@@ -455,28 +463,21 @@ if (window.PEDIDO_MODULE_LOADED) {
   };
 
   async function carregarSelect(selectId, recurso, idCampo, textoCampo) {
-    const response = await fetch(apiUrlPedido(recurso));
+    // 🔥 Garante que a URL vai com somenteAtivos=1
+    const response = await fetch(
+      `${apiUrlPedido(recurso)}?somenteAtivos=1&t=${Date.now()}`,
+    );
     const data = await response.json();
 
     const select = document.getElementById(selectId);
+    if (!select) return;
 
-    select.innerHTML = "";
-
-    const optionDefault = document.createElement("option");
-
-    optionDefault.value = "";
-    optionDefault.textContent = "Selecione...";
-    optionDefault.disabled = true;
-    optionDefault.selected = true;
-
-    select.appendChild(optionDefault);
-
+    select.innerHTML =
+      '<option value="" disabled selected>Selecione...</option>';
     data.forEach((item) => {
       const option = document.createElement("option");
-
       option.value = item[idCampo] ?? item.id;
       option.textContent = item[textoCampo] ?? item.nome ?? item.descricao;
-
       select.appendChild(option);
     });
   }
@@ -757,7 +758,7 @@ window.abrirModalPedidoDetalhe = async function (id) {
     corpoModal.innerHTML = `
             <div class="row g-2">
                 <div class="col-6"><strong>Data:</strong><br> ${p.data}</div>
-                <div class="col-6"><strong>Shaper:</strong><br> ${p.shaper}</div>
+                <div class="col-6"><strong>Shaper/Cliente:</strong><br> ${p.shaper}</div>
                 <hr>
                 <div class="col-6"><strong>Composição:</strong><br> ${p.composicao || "-"}</div>
                 <div class="col-6"><strong>Variação:</strong><br> ${p.variacao || "-"}</div>
@@ -780,4 +781,52 @@ window.abrirModalPedidoDetalhe = async function (id) {
 
   // 4. Exibe a modal
   bootstrap.Modal.getOrCreateInstance(modalEl).show();
+};
+
+window.alternarAtivoGenerico = async function (id, isChecked) {
+  try {
+    // Tenta pegar do contextoAtual, se falhar, identifica pelo título da modal aberta
+    let recurso =
+      typeof contextoAtual !== "undefined" ? contextoAtual.recurso : null;
+
+    if (!recurso) {
+      const titulo =
+        document
+          .querySelector("#modalGenerico .modal-title")
+          ?.innerText.toLowerCase() || "";
+      if (titulo.includes("composição")) recurso = "composicoes";
+      else if (titulo.includes("variação")) recurso = "variacoes";
+      else if (titulo.includes("shaper")) recurso = "shapers";
+      else if (titulo.includes("acabamento")) recurso = "acabamentos";
+      else if (titulo.includes("cor")) recurso = "cores";
+      else if (titulo.includes("tecido")) recurso = "tecidos";
+      else if (titulo.includes("quilha"))
+        recurso = titulo.includes("config")
+          ? "configuracaoquilhas"
+          : "sistemaquilhas";
+    }
+
+    if (!recurso) throw new Error("Recurso não identificado.");
+
+    const response = await fetch(`${BASE_URL}/api/${recurso}/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        _method: "PUT",
+        ativo: isChecked ? 1 : 0,
+        somenteAtivo: true,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Erro ao atualizar status");
+
+    // Atualiza os selects da página para o item sumir/aparecer na hora
+    if (window.popularSelects) {
+      await window.popularSelects();
+    }
+  } catch (error) {
+    console.error("Erro ao alternar ativo:", error);
+    // Se falhar, recarrega a modal para voltar o switch para a posição correta
+    if (typeof carregarListaModal === "function") carregarListaModal();
+  }
 };
