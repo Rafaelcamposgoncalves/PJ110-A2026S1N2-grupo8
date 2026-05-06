@@ -150,7 +150,7 @@ case 'PUT':
                             if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
                                 http_response_code(400); // Bad Request
                                 echo json_encode([
-                                    "erro" => "Não é possível excluir este item pois ele está sendo utilizado em pedidos cadastrados."
+                                    "erro" => "Esta cor está vinculada a pedidos e não pode ser excluída. Use a opção de Ativ/Desat."
                                 ]);
                             } else {
                                 // Outros erros genéricos de banco de dados

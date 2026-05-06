@@ -83,29 +83,29 @@ class ShaperController {
                 echo json_encode($updated ? ["mensagem" => "Shaper atualizado"] : ["erro" => "Falha ou sem alterações"]);
                 break;
 
-case 'DELETE':
-    if (!$id) {
-        http_response_code(400);
-        echo json_encode(["erro" => "ID não informado"]);
-        return;
-    }
+                case 'DELETE':
+                    if (!$id) {
+                        http_response_code(400);
+                        echo json_encode(["erro" => "ID não informado"]);
+                        return;
+                    }
 
-    try {
-        $deleted = $this->shaper->deletar($id);
-        if ($deleted) {
-            echo json_encode(["mensagem" => "Shaper deletado com sucesso"]);
-        } else {
-            http_response_code(404);
-            echo json_encode(["erro" => "Shaper não encontrado"]);
-        }
-    } catch (PDOException $e) {
-        // Erro 23000 ou 1451: Restrição de chave estrangeira (Shaper em uso)
-        http_response_code(400); 
-        echo json_encode([
-            "erro" => "Não é possível excluir um Shaper em uso. Este Shaper possui vínculos com pedidos existentes. Para ocultá-lo, utilize a opção de desativar."
-        ]);
-    }
-    break;
+                    try {
+                        $deleted = $this->shaper->deletar($id);
+                        if ($deleted) {
+                            echo json_encode(["mensagem" => "Shaper deletado com sucesso"]);
+                        } else {
+                            http_response_code(404);
+                            echo json_encode(["erro" => "Shaper não encontrado"]);
+                        }
+                    } catch (PDOException $e) {
+                        // Erro 23000 ou 1451: Restrição de chave estrangeira (Shaper em uso)
+                        http_response_code(400); 
+                        echo json_encode([
+                            "erro" => "Não é possível excluir um Shaper em uso. Este Shaper possui vínculos com pedidos existentes. Para ocultá-lo, utilize a opção de desativar."
+                        ]);
+                    }
+                    break;
 
 
             default:

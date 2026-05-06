@@ -52,7 +52,7 @@ class AcabamentoController {
                     } catch (PDOException $e) {
                         if ($e->getCode() == "23000") {
                             http_response_code(400);
-                            echo json_encode(["erro" => "Bloqueado", "mensagem" => "Acabamento em uso em pedidos."]);
+                            echo json_encode(["erro" => "Este acabamento está vinculada a pedidos e não pode ser excluída. Use a opção de Ativ/Desat."]);
                         } else { throw $e; }
                     }
                     break;

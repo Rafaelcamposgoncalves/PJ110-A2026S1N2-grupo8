@@ -95,8 +95,7 @@ class ComposicaoController {
                         if ($e->getCode() == "23000" || strpos($e->getMessage(), '1451') !== false) {
                             http_response_code(400);
                             echo json_encode([
-                                "erro" => "Impedimento de exclusão",
-                                "mensagem" => "Esta composição está vinculada a pedidos e não pode ser excluída. Use a opção de desativar."
+                                "erro" => "Esta composição está vinculada a pedidos e não pode ser excluída. Use a opção de Ativ/Desat."
                             ]);
                         } else {
                             throw $e;

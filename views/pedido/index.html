@@ -15,8 +15,8 @@
         </li>
 
         <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabGerenciamentoPedido">
-                <i class="fa-solid fa-gears"></i>
+            <button class="nav-link btn-config" data-bs-toggle="tab" data-bs-target="#tabGerenciamentoPedido">
+                <i class="fa-solid"></i>
                 <!-- Mobile -->
                 <span class="d-inline d-md-none"> Gerenciamento</span>
                 <!-- Desktop -->
@@ -75,7 +75,7 @@
                                 <label class="form-label">Composição</label>
                                 <div class="input-group input-group-sm mb-3">
                                     <select id="id_composicaoPedido" class="form-control"></select>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="abrirModalGenerico('composicao')">
+                                    <button class="btn btn-outline-secondary btn-config" type="button" onclick="abrirModalGenerico('composicao')">
                                         <i class="fa-solid fa-gear"></i>
                                     </button>
                                 </div>
@@ -86,7 +86,7 @@
                                 <label class="form-label">Variação</label>
                                 <div class="input-group input-group-sm mb-3">
                                     <select id="id_variacaoPedido" class="form-control"></select>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="abrirModalGenerico('variacao')">
+                                    <button class="btn btn-outline-secondary btn-config" type="button" onclick="abrirModalGenerico('variacao')">
                                         <i class="fa-solid fa-gear"></i>
                                     </button>
                                 </div>
@@ -97,7 +97,7 @@
                                 <label class="form-label">Acabamento</label>
                                 <div class="input-group input-group-sm mb-3">
                                     <select id="id_acabamentoPedido" class="form-control"></select>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="abrirModalGenerico('acabamento')">
+                                    <button class="btn btn-outline-secondary btn-config" type="button" onclick="abrirModalGenerico('acabamento')">
                                         <i class="fa-solid fa-gear"></i>
                                     </button>
                                 </div>
@@ -108,7 +108,7 @@
                                 <label class="form-label">Config. Quilha</label>
                                 <div class="input-group input-group-sm mb-3">
                                     <select id="id_configuracaoquilhaPedido" class="form-control"></select>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="abrirModalGenerico('configQuilha')">
+                                    <button class="btn btn-outline-secondary btn-config" type="button" onclick="abrirModalGenerico('configQuilha')">
                                         <i class="fa-solid fa-gear"></i>
                                     </button>
                                 </div>
@@ -119,7 +119,7 @@
                                 <label class="form-label">Sistema Quilha</label>
                                 <div class="input-group input-group-sm mb-3">
                                     <select id="id_sistemaquilhaPedido" class="form-control"></select>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="abrirModalGenerico('sistemaQuilha')">
+                                    <button class="btn btn-outline-secondary btn-config" type="button" onclick="abrirModalGenerico('sistemaQuilha')">
                                         <i class="fa-solid fa-gear"></i>
                                     </button>
                                 </div>
@@ -129,7 +129,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Cores</label>
                                 <div class="input-group-custom">
-                                    <select id="id_cor" multiple></select>
+                                    <select id="id_cor" placeholder="Selecione..." multiple></select>
                                     <button class="choice_plus" type="button" onclick="abrirModalGenerico('cores')">
                                         <i class="fa-solid fa-gear"></i>
                                     </button>
@@ -143,8 +143,8 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Tecido</label>
                                 <div class="input-group-custom">
-                                    <select id="id_tecidoPedido" multiple></select>
-                                    <button class="choice_plus" type="button" onclick="abrirModalGenerico('tecido')">
+                                    <select id="id_tecidoPedido" placeholder="Selecione..." multiple></select>
+                                    <button class="choice_plus btn-config" type="button" onclick="abrirModalGenerico('tecido')">
                                         <i class="fa-solid fa-gear"></i>
                                     </button>
                                 </div>
@@ -178,15 +178,17 @@
 
                 <table class="table table-striped table-hover table-sm">
 
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Pedido</th>
-                            <th>Data</th>
-                            <th>Shaper/Cliente</th>
-                            <th>Observação</th>
-                            <th width="100">Ações</th>
+                    <thead>
+                        <tr class="table-dark" style="cursor: pointer;">
+                            <th onclick="window.listarPedidos('id_pedido')">ID <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="window.listarPedidos('status')">Status <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="window.listarPedidos('data')">Data <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="window.listarPedidos('shaper')">Shaper <i class="fa-solid fa-sort"></i></th>
+                            <th onclick="window.listarPedidos('observacao')">Obs <i class="fa-solid fa-sort"></i></th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
+
 
                     <tbody id="listaPedidos"></tbody>
 
@@ -231,7 +233,7 @@
                             <tr>
                                 <th width="50">ID</th>
                                 <th>Descrição</th>
-                                <th width="100" class="text-center">Ativo</th> <!-- NOVA COLUNA -->
+                                <th width="100" class="text-center">Ativ/Desat</th>
                                 <th width="120" class="text-center">Ações</th>
                             </tr>
                         </thead>

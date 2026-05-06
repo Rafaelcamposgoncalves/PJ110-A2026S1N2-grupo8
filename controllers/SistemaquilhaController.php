@@ -61,7 +61,7 @@ class SistemaquilhaController {
                     } catch (PDOException $e) {
                         if ($e->getCode() == "23000") {
                             http_response_code(400);
-                            echo json_encode(["erro" => "Impedimento", "mensagem" => "Este sistema está em uso."]);
+                            echo json_encode(["erro" => "Este sistema de quilha está vinculada a pedidos e não pode ser excluída. Use a opção de Ativ/Desat."]);
                         } else { throw $e; }
                     }
                     break;

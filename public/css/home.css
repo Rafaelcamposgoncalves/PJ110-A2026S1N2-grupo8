@@ -152,18 +152,6 @@
   touch-action: none; /* Melhora a resposta ao toque */
 }
 
-.btn-card {
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    background-color 0.2s;
-}
-
-.btn-card:hover {
-  transform: translateY(-3px);
-  background-color: #f1f3f5 !important;
-}
-
 /* Garante que o painel ativo apareça e os outros sumam */
 .tab-pane {
   display: none;

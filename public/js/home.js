@@ -153,16 +153,13 @@ window.irParaShaper = function () {
   }
 };
 
-// Adicione isto no final do seu home.js
+// DASHBOARD
 window.atualizarDashboard = async function () {
   const elPedidos = document.getElementById("cardTotalPedidos");
-  const elStatus = document.getElementById("cardTotalStatus");
   const elShapers = document.getElementById("cardTotalShapers");
-  const elFinalizados = document.getElementById("cardPedidosFinalizados");
-  const elAbertos = document.getElementById("cardPedidosAbertos");
+  const containerStatus = document.getElementById("containerStatusDinamico");
 
   try {
-    // Busca todos os dados necessários
     const [resP, resS, resSt] = await Promise.all([
       fetch(`${BASE_URL}/api/pedidos?t=${Date.now()}`),
       fetch(`${BASE_URL}/api/shapers?t=${Date.now()}`),
@@ -173,37 +170,82 @@ window.atualizarDashboard = async function () {
     const shapers = await resS.json();
     const statusList = await resSt.json();
 
-    // 1. Totais Simples
-    if (elPedidos)
-      elPedidos.innerText = Array.isArray(pedidos) ? pedidos.length : 0;
-    if (elShapers)
-      elShapers.innerText = Array.isArray(shapers) ? shapers.length : 0;
-    if (elStatus)
-      elStatus.innerText = Array.isArray(statusList) ? statusList.length : 0;
+    if (elPedidos) elPedidos.innerText = pedidos.length || 0;
+    if (elShapers) elShapers.innerText = shapers.length || 0;
 
-    // 2. Lógica de Finalizados vs Abertos (Baseado na maior ordem)
-    if (
-      Array.isArray(pedidos) &&
-      Array.isArray(statusList) &&
-      statusList.length > 0
-    ) {
-      // Descobre qual o ID que tem a MAIOR ordem na tabela de status
-      const statusFinal = statusList.reduce((prev, current) =>
-        prev.ordem > current.ordem ? prev : current,
-      );
-      const idStatusFinal = String(statusFinal.id);
+    if (containerStatus && Array.isArray(statusList)) {
+      const contagemStatus = {};
+      let totalSemStatus = 0; // Variável para pedidos sem histórico
 
-      const totalFinalizados = pedidos.filter((p) => {
-        if (!p.status_ids) return false;
-        const idsArray = p.status_ids.split(",");
-        const idStatusAtual = idsArray[idsArray.length - 1].trim();
-        return idStatusAtual === idStatusFinal;
-      }).length;
+      statusList.forEach((s) => {
+        contagemStatus[s.id] = 0;
+      });
 
-      const totalAbertos = pedidos.length - totalFinalizados;
+      if (Array.isArray(pedidos)) {
+        pedidos.forEach((p) => {
+          // Se não houver status_ids, contamos como "Sem Status"
+          if (!p.status_ids || p.status_ids.trim() === "") {
+            totalSemStatus++;
+          } else {
+            const ids = p.status_ids
+              .split(",")
+              .map((id) => parseInt(id.trim()));
 
-      if (elFinalizados) elFinalizados.innerText = totalFinalizados;
-      if (elAbertos) elAbertos.innerText = totalAbertos;
+            const idMaisRecente = Math.max(...ids);
+
+            if (contagemStatus[idMaisRecente] !== undefined) {
+              contagemStatus[idMaisRecente]++;
+            }
+          }
+        });
+      }
+
+      // 1. Inicia o HTML com o Card de TOTAL GERAL
+      let htmlGerado = `
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card text-bg-primary mb-3 shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem;">
+                                Total Geral
+                            </h6>
+                            <h2 class="card-title mb-0 fw-bold">${pedidos.length || 0}</h2>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+      // 2. Adiciona o Card de SEM STATUS (Se houver algum ou fixo)
+      htmlGerado += `
+                <div class="col-md-3 col-6 mb-3">
+                    <div class="card text-bg-danger mb-3 shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem;">
+                                Sem Status (Aguardando)
+                            </h6>
+                            <h2 class="card-title mb-0 fw-bold">${totalSemStatus}</h2>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+      // 3. Gera os cards para TODOS os status da tabela 'status'
+      statusList.forEach((st) => {
+        const total = contagemStatus[st.id] || 0;
+        htmlGerado += `
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="card text-bg-light mb-3 shadow-sm border-0 h-100">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">
+                                    ${st.descricao}
+                                </h6>
+                                <h2 class="card-title mb-0 fw-bold">${total}</h2>
+                            </div>
+                        </div>
+                    </div>
+                `;
+      });
+
+      containerStatus.innerHTML = htmlGerado;
     }
   } catch (erro) {
     console.error("Erro ao atualizar dashboard:", erro);

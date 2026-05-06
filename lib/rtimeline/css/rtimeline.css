@@ -62,7 +62,7 @@
 }
 
 /* Setinha do card */
-.timeline .card-body::after {
+.timeline .card::after {
   content: "";
   position: absolute;
   background-color: #f8f8f8;
