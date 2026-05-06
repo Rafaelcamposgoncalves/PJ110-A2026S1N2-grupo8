@@ -671,6 +671,7 @@ if (window.PEDIDO_MODULE_LOADED) {
     const data = await response.json();
 
     if (typeof showToast === "function") showToast("Pedido", data);
+    resetFormPedido();
     listarPedidos();
   };
 
