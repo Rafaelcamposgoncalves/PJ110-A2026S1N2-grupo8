@@ -25,8 +25,8 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");    // Data no passado
   <!-- Choices.js -->
   <link rel="stylesheet" href="<?php echo $base; ?>/public/css/Choices.css" />
 
-  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/app.css?v=1.0.3">
-  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/home.css?v=1.0.3">
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/app.css?v=1.0.4">
+  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/home.css?v=1.0.4">
   <link rel="stylesheet" href="<?php echo $base; ?>/lib/rtimeline/css/rtimeline.css">
 </head>
 

@@ -1,6 +1,25 @@
 //Variáveis globais
-let dadosPedidosAtuais = []; // Guarda os dados para reordenar sem novo fetch
-let ordemAscendente = true; // Controla se a ordem é A-Z ou Z-A
+
+window.colunaOrdenacaoAtual =
+  localStorage.getItem("pedido_ordem_coluna") || "id_pedido";
+window.ordemAscendente = localStorage.getItem("pedido_ordem_dir") === "true";
+window.dadosPedidosAtuais = [];
+
+function obterTextoStatus(p) {
+  if (!p.status || !p.status_ids) return "Sem Status";
+  const nomes = p.status.split(",");
+  const ids = p.status_ids.split(",");
+  let maxId = -1;
+  let idx = 0;
+  ids.forEach((id, i) => {
+    const n = parseInt(id.trim());
+    if (n > maxId) {
+      maxId = n;
+      idx = i;
+    }
+  });
+  return nomes[idx].trim();
+}
 
 // Função global para extrair o status mais recente baseada no maior ID
 window.getUltimoStatusValue = function (p) {
@@ -430,7 +449,30 @@ if (window.PEDIDO_MODULE_LOADED) {
     setTimeout(() => alerta.classList.add("d-none"), 4000);
   }
 
-  window.popularSelects = async function () {
+  window.popularSelects = async function (limparMemoria = false) {
+    // Só memoriza se NÃO for para limpar
+    const memoria = limparMemoria
+      ? {}
+      : {
+          data: document.getElementById("dataPedido")?.value,
+          obs: document.getElementById("observacaoPedido")?.value,
+          shaper: document.getElementById("id_shaperPedido")?.value,
+          composicao: document.getElementById("id_composicaoPedido")?.value,
+          variacao: document.getElementById("id_variacaoPedido")?.value,
+          acabamento: document.getElementById("id_acabamentoPedido")?.value,
+          quilha: document.getElementById("id_configuracaoquilhaPedido")?.value,
+          sistema: document.getElementById("id_sistemaquilhaPedido")?.value,
+          cores:
+            typeof coresChoice !== "undefined"
+              ? coresChoice.getValue(true)
+              : [],
+          tecidos:
+            typeof tecidosChoice !== "undefined"
+              ? tecidosChoice.getValue(true)
+              : [],
+        };
+
+    // Recarrega os dados da API
     await carregarSelect("id_shaperPedido", "shapers", "id_shaper", "nome");
     await carregarSelect(
       "id_composicaoPedido",
@@ -470,23 +512,48 @@ if (window.PEDIDO_MODULE_LOADED) {
     );
     await carregarSelect("id_cor", "cores", "id_cor", "descricao");
 
+    // Reinicializa Choices
     if (tecidosChoice) tecidosChoice.destroy();
     tecidosChoice = new Choices("#id_tecidoPedido", {
       removeItemButton: true,
-      searchEnabled: true,
       placeholder: true,
       placeholderValue: "Selecione...",
-      itemSelectText: "",
     });
 
     if (coresChoice) coresChoice.destroy();
     coresChoice = new Choices("#id_cor", {
       removeItemButton: true,
-      searchEnabled: true,
       placeholder: true,
       placeholderValue: "Selecione...",
-      itemSelectText: "",
     });
+
+    // 🔥 SÓ RESTAURA SE NÃO FOR UM RESET
+    if (!limparMemoria) {
+      if (memoria.data)
+        document.getElementById("dataPedido").value = memoria.data;
+      if (memoria.obs)
+        document.getElementById("observacaoPedido").value = memoria.obs;
+      if (memoria.shaper)
+        document.getElementById("id_shaperPedido").value = memoria.shaper;
+      if (memoria.composicao)
+        document.getElementById("id_composicaoPedido").value =
+          memoria.composicao;
+      if (memoria.variacao)
+        document.getElementById("id_variacaoPedido").value = memoria.variacao;
+      if (memoria.acabamento)
+        document.getElementById("id_acabamentoPedido").value =
+          memoria.acabamento;
+      if (memoria.quilha)
+        document.getElementById("id_configuracaoquilhaPedido").value =
+          memoria.quilha;
+      if (memoria.sistema)
+        document.getElementById("id_sistemaquilhaPedido").value =
+          memoria.sistema;
+      if (memoria.cores?.length > 0)
+        coresChoice.setChoiceByValue(memoria.cores);
+      if (memoria.tecidos?.length > 0)
+        tecidosChoice.setChoiceByValue(memoria.tecidos);
+    }
   };
 
   async function carregarSelect(selectId, recurso, idCampo, textoCampo) {
@@ -539,50 +606,57 @@ if (window.PEDIDO_MODULE_LOADED) {
     return nomes[idx].trim();
   }
 
-  window.listarPedidos = async function (coluna = "id_pedido") {
-    if (dadosPedidosAtuais.length === 0) {
-      const response = await fetch(apiUrlPedido("pedidos"));
-      dadosPedidosAtuais = await response.json();
+  window.listarPedidos = async function (
+    coluna = window.colunaOrdenacaoAtual,
+    inverter = true,
+  ) {
+    // 1. Se for atualização automática ou troca de aba, limpa o cache
+    if (arguments.length === 0 || window.dadosPedidosAtuais.length === 0) {
+      window.dadosPedidosAtuais = [];
     }
 
-    dadosPedidosAtuais.sort((a, b) => {
-      let valA, valB;
+    if (window.dadosPedidosAtuais.length === 0) {
+      const response = await fetch(apiUrlPedido("pedidos"));
+      window.dadosPedidosAtuais = await response.json();
+    }
 
-      // Trata cada tipo de coluna
-      if (coluna === "status") {
-        valA = obterTextoStatus(a);
-        valB = obterTextoStatus(b);
-      } else {
-        valA = a[coluna] || "";
-        valB = b[coluna] || "";
-      }
+    // 2. Só inverte a seta se o utilizador clicar no cabeçalho (inverter = true)
+    if (inverter) {
+      window.ordemAscendente = !window.ordemAscendente;
+    }
 
-      // Comparação Numérica (ID)
+    // 3. Executa a ordenação
+    window.dadosPedidosAtuais.sort((a, b) => {
+      let valA = coluna === "status" ? obterTextoStatus(a) : a[coluna] || "";
+      let valB = coluna === "status" ? obterTextoStatus(b) : b[coluna] || "";
+
       if (coluna === "id_pedido") {
-        return ordemAscendente ? valA - valB : valB - valA;
+        return window.ordemAscendente ? valA - valB : valB - valA;
       }
-
-      // Comparação de Texto (Data, Shaper, Observação, Status)
-      return ordemAscendente
+      return window.ordemAscendente
         ? valA.toString().localeCompare(valB.toString())
         : valB.toString().localeCompare(valA.toString());
     });
 
-    ordemAscendente = !ordemAscendente;
+    // 4. Salva o estado atual no navegador
+    localStorage.setItem("pedido_ordem_coluna", coluna);
+    localStorage.setItem("pedido_ordem_dir", window.ordemAscendente);
+    window.colunaOrdenacaoAtual = coluna;
 
+    // 5. Renderiza a tabela
     const lista = document.getElementById("listaPedidos");
+    if (!lista) return;
     lista.innerHTML = "";
 
-    dadosPedidosAtuais.forEach((pedido) => {
+    window.dadosPedidosAtuais.forEach((pedido) => {
       const nomeStatus = obterTextoStatus(pedido);
       const badgeClass =
         nomeStatus === "Sem Status" ? "bg-secondary" : "bg-primary";
-
       lista.innerHTML += `
             <tr>
                 <td>${pedido.id_pedido}</td>
                 <td><span class="badge ${badgeClass}">${nomeStatus}</span></td>
-                <td>${pedido.data}</td>
+                <td>${window.formatarDataBR(pedido.data)}</td>
                 <td>${pedido.shaper}</td>
                 <td class="small text-muted">${pedido.observacao ?? ""}</td>
                 <td>
@@ -594,7 +668,6 @@ if (window.PEDIDO_MODULE_LOADED) {
                 </td>
             </tr>`;
     });
-    initTooltips();
   };
 
   window.cadastrarOuAtualizarPedido = async function () {
@@ -609,11 +682,9 @@ if (window.PEDIDO_MODULE_LOADED) {
     ];
 
     let camposFaltando = [];
-
     camposObrigatorios.forEach((campo) => {
       const el = document.getElementById(campo.id);
-
-      if (!el.value) {
+      if (!el || !el.value) {
         camposFaltando.push(" " + campo.nome);
       }
     });
@@ -624,17 +695,16 @@ if (window.PEDIDO_MODULE_LOADED) {
     if (cores.length === 0) {
       camposFaltando.push(" Cores");
     }
-
     if (tecidos.length === 0) {
       camposFaltando.push(" Tecido");
     }
 
     if (camposFaltando.length > 0) {
-      if (typeof showToast === "function")
+      if (typeof showToast === "function") {
         showToast("Pedido", {
           erro: `Preencha todos os campos: ${camposFaltando}`,
         });
-
+      }
       return;
     }
 
@@ -654,39 +724,48 @@ if (window.PEDIDO_MODULE_LOADED) {
     };
 
     let url = apiUrlPedido("pedidos");
-
     if (window.editIdPedido) {
       bodyData._method = "PUT";
       url = apiUrlPedido("pedidos", window.editIdPedido);
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(bodyData),
-    });
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (typeof showToast === "function") showToast("Pedido", data);
-    resetFormPedido();
-    listarPedidos();
+      if (response.ok) {
+        if (typeof showToast === "function") showToast("Pedido", data);
+
+        // 🔥 1. Limpa o cache para forçar a busca de dados atualizados
+        window.dadosPedidosAtuais = [];
+
+        // 🔥 2. Reseta o formulário (volta o botão para 'Cadastrar' e limpa campos)
+        if (typeof resetFormPedido === "function") {
+          window.resetFormPedido();
+        }
+
+        // 🔥 3. Atualiza a tabela:
+        // Passamos a coluna atual e 'false' para NÃO inverter a direção da seta.
+        if (window.listarPedidos) {
+          window.listarPedidos(window.colunaOrdenacaoAtual, false);
+        }
+      } else {
+        if (typeof showToast === "function") {
+          showToast("Erro", { erro: data.erro || "Erro ao salvar o pedido" });
+        }
+      }
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+      if (typeof showToast === "function") {
+        showToast("Erro", { erro: "Falha de comunicação com o servidor." });
+      }
+    }
   };
-
-  function alternarBotoesConfiguracao(desabilitar) {
-    // Seleciona todos os botões que abrem as modais genéricas (engrenagens)
-    const botoes = document.querySelectorAll(
-      'button[onclick*="abrirModalGenerico"]',
-    );
-
-    botoes.forEach((btn) => {
-      btn.disabled = desabilitar;
-      // Opcional: muda a opacidade para dar feedback visual
-      btn.style.opacity = desabilitar ? "0.5" : "1";
-    });
-  }
 
   window.preencherEdicaoPedido = async function (id) {
     const response = await fetch(apiUrlPedido("pedidos", id));
@@ -710,17 +789,6 @@ if (window.PEDIDO_MODULE_LOADED) {
         select.appendChild(opt);
       }
       select.value = valorId;
-    };
-
-    // --- FUNÇÃO PARA BLOQUEAR ENGRENAGENS ---
-    const alternarEngrenagens = (desabilitar) => {
-      const botoes = document.querySelectorAll(
-        'button[onclick*="abrirModalGenerico"]',
-      );
-      botoes.forEach((btn) => {
-        btn.disabled = desabilitar;
-        btn.style.opacity = desabilitar ? "0.5" : "1";
-      });
     };
 
     // 1. Preencher campos de texto
@@ -774,10 +842,6 @@ if (window.PEDIDO_MODULE_LOADED) {
     btnSubmit.classList.add("btn-warning");
 
     document.getElementById("btnCancelarPedido").classList.remove("d-none");
-
-    // Bloqueia as engrenagens para evitar bagunça nos selects durante a edição
-    alternarEngrenagens(true);
-
     // 5. Scroll suave até o formulário
     document
       .getElementById("up")
@@ -807,9 +871,17 @@ if (window.PEDIDO_MODULE_LOADED) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ _method: "DELETE" }),
       });
+
       const data = await response.json();
-      if (typeof showToast === "function") showToast("Pedido", data);
-      listarPedidos();
+
+      if (response.ok) {
+        // 🔥 OBRIGATÓRIO: Limpa o cache para forçar novo fetch na listarPedidos
+        dadosPedidosAtuais = [];
+        if (typeof showToast === "function") showToast("Pedido", data);
+        listarPedidos();
+      } else {
+        if (typeof showToast === "function") showToast("Erro", data);
+      }
     } catch (error) {
       console.error("Erro ao deletar pedido:", error);
     }
@@ -818,37 +890,20 @@ if (window.PEDIDO_MODULE_LOADED) {
   window.resetFormPedido = function () {
     window.editIdPedido = null;
 
-    // 1. Reset visual do botão principal
-    const btnSubmit = document.getElementById("btnSubmitPedido");
-    if (btnSubmit) {
-      btnSubmit.classList.replace("btn-warning", "btn-primary");
-      btnSubmit.textContent = "Cadastrar";
-    }
-
-    // 2. Esconde o botão cancelar
-    const btnCancel = document.getElementById("btnCancelarPedido");
-    if (btnCancel) btnCancel.classList.add("d-none");
-
-    // 3. Limpa textos
+    // Limpezas básicas de texto
     document.getElementById("dataPedido").value = "";
     document.getElementById("observacaoPedido").value = "";
 
-    // 4. Limpa Choices
-    if (window.tecidosChoice) tecidosChoice.removeActiveItems();
-    if (window.coresChoice) coresChoice.removeActiveItems();
+    // Reset visual dos botões
+    const btnSubmit = document.getElementById("btnSubmitPedido");
+    btnSubmit.classList.replace("btn-warning", "btn-primary");
+    btnSubmit.textContent = "Cadastrar";
+    document.getElementById("btnCancelarPedido").classList.add("d-none");
 
-    // 5. 🔥 HABILITA AS ENGRENAGENS (Pela Classe)
-    const botoes = document.querySelectorAll(".btn-config");
-    console.log("Botões encontrados para ativar:", botoes.length); // Verifica no F12
-
-    botoes.forEach((btn) => {
-      btn.disabled = false;
-      btn.style.opacity = "1";
-      btn.style.pointerEvents = "auto"; // Garante que o clique volta a funcionar
-    });
-
-    // 6. Recarrega os selects
-    if (window.popularSelects) window.popularSelects();
+    // 🔥 O SEGREDO: Chama a popularSelects avisando que é para LIMPAR a memória
+    if (window.popularSelects) {
+      window.popularSelects(true);
+    }
   };
 
   window.initPedido = function () {
@@ -941,7 +996,7 @@ window.abrirModalPedidoDetalhe = async function (id) {
 
     corpoModal.innerHTML = `
             <div class="row g-2">
-                <div class="col-6"><strong>Data:</strong><br> ${p.data}</div>
+                <div class="col-6"><strong>Data:</strong><br> ${window.formatarDataBR(p.data)}</div>
                 <div class="col-6"><strong>Status Atual:</strong><br> 
                     <span class="badge bg-primary text-uppercase">${statusTexto}</span>
                 </div>

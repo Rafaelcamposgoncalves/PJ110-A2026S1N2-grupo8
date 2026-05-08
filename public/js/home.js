@@ -3,6 +3,45 @@ let dashboardCarregado = false;
 let pedidoCarregado = false;
 let shaperCarregado = false;
 
+// home.js
+
+// FORMATA DATA PARA PT-BR
+window.formatarDataBR = function (dataSQL) {
+  if (!dataSQL || dataSQL === "0000-00-00") return "-";
+
+  // Tratamento para datas que podem vir com hora (AAAA-MM-DD HH:MM:SS)
+  const dataApenas = dataSQL.split(" ")[0];
+  const partes = dataApenas.split("-");
+
+  if (partes.length !== 3) return dataSQL; // Retorna original se não for formato esperado
+
+  const [ano, mes, dia] = partes;
+  return `${dia}/${mes}/${ano}`;
+};
+
+//MASCARA TELEFONE
+window.mascaraTelefone = function (input) {
+  let v = input.value.replace(/\D/g, ""); // Remove tudo o que não é dígito
+
+  if (v.length > 11) v = v.substring(0, 11); // Limita a 11 dígitos
+
+  if (v.length > 10) {
+    // Formato (00) 00000-0000
+    v = v.replace(/^(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  } else if (v.length > 5) {
+    // Formato (00) 0000-0000
+    v = v.replace(/^(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  } else if (v.length > 2) {
+    // Formato (00) 0...
+    v = v.replace(/^(\d{2})(\d+)/, "($1) $2");
+  } else if (v.length > 0) {
+    // Formato (0...
+    v = v.replace(/^(\d+)/, "($1");
+  }
+
+  input.value = v;
+};
+
 async function carregarUsuario() {
   try {
     const response = await fetch(`${BASE_URL}/api/usuario`);
@@ -48,14 +87,20 @@ async function carregarDashboard() {
 }
 
 async function carregarPedido() {
-  // 1. Limpeza visual (opcional, se estiveres a usar a resetVisualAbas)
+  // 1. Limpeza visual (opcional)
   if (typeof resetVisualAbas === "function") resetVisualAbas("pedido");
+
+  // 🔥 O SEGREDO: Limpa o cache de dados sempre que a função é chamada.
+  // Isso garante que ao voltar da aba de Status, a tabela de Pedidos seja atualizada.
+  if (typeof window.dadosPedidosAtuais !== "undefined") {
+    window.dadosPedidosAtuais = [];
+  }
 
   if (pedidoCarregado) {
     if (window.listarPedidosStatus) window.listarPedidosStatus();
-    if (window.listarPedidos) window.listarPedidos();
-
-    // 🔥 MUDANÇA: Usa popularSelects para garantir que inativos sumam ao retornar
+    // Chama mantendo a direção guardada
+    if (window.listarPedidos)
+      window.listarPedidos(window.colunaOrdenacaoAtual, false);
     if (window.popularSelects) await window.popularSelects();
     return;
   }
@@ -65,12 +110,13 @@ async function carregarPedido() {
     const html = await response.text();
     document.getElementById("conteudo-pedido").innerHTML = html;
 
-    // 🔥 MUDANÇA: Chama popularSelects em vez de carregarShapersPedido
-    // Isso força o Shaper a usar o filtro ?somenteAtivos=1 da função genérica
+    // 🔥 Chama popularSelects para carregar todos os selects com filtro de ativos
     if (window.popularSelects) {
       await window.popularSelects();
     }
 
+    // Inicializa as funções da aba de pedidos
+    if (window.listarPedidos) window.listarPedidos(window.colunaOrdenacaoAtual);
     if (window.initPedidoStatus) window.initPedidoStatus();
     if (window.vincularEventosTabs) window.vincularEventosTabs();
 

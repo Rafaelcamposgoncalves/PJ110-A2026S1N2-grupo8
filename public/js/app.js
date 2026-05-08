@@ -1,5 +1,7 @@
 // app.js
 
+// Em seguida, vem o resto das tuas funções (abrirModal, listarPedidos, etc.)
+
 // ===============================
 // GESTÃO DE ATUALIZAÇÃO DE TABS
 // ===============================
