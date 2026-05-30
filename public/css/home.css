@@ -166,3 +166,43 @@
   background-color: #0d6efd !important;
   color: white !important;
 }
+
+/* Estilo para o ícone de fundo nos cards */
+.card-icon-bg {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 3rem; /* Tamanho do ícone */
+  color: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /* Branco com opacidade (ajusta o 0.15 se quiseres mais ou menos sumido) */
+  transition: all 0.4s ease-in-out;
+  pointer-events: none; /* Garante que o ícone não atrapalhe cliques no card */
+}
+
+/* Efeito de rotação quando passa o rato no CARD */
+.card:hover .card-icon-bg {
+  transform: rotate(15deg) scale(1.1); /* Roda 15 graus para a direita e aumenta ligeiramente */
+  color: rgba(255, 255, 255, 0.3); /* Fica um pouco mais visível no hover */
+}
+
+/* Ajuste para garantir que o conteúdo do card fique por cima do ícone */
+.card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.card {
+  overflow: hidden; /* Garante que o ícone não saia dos limites do card ao rodar */
+}
+
+.card-icon-bg-reverse {
+  color: rgba(0, 0, 0, 0.15);
+}
+
+.card:hover .card-icon-bg-reverse {
+  color: rgba(0, 0, 0, 0.3);
+}

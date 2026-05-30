@@ -250,6 +250,7 @@ window.atualizarDashboard = async function () {
       let htmlGerado = `
                 <div class="col-md-3 col-6 mb-3">
                     <div class="card text-bg-primary mb-3 shadow-sm border-0 h-100">
+                        <i class="fa-solid fa-boxes-stacked card-icon-bg"></i>
                         <div class="card-body">
                             <h6 class="card-subtitle mb-2 text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem;">
                                 Total Geral
@@ -264,6 +265,7 @@ window.atualizarDashboard = async function () {
       htmlGerado += `
                 <div class="col-md-3 col-6 mb-3">
                     <div class="card text-bg-danger mb-3 shadow-sm border-0 h-100">
+                        <i class="fa-solid fa-stopwatch card-icon-bg"></i>
                         <div class="card-body">
                             <h6 class="card-subtitle mb-2 text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem;">
                                 Sem Status (Aguardando)
@@ -280,6 +282,7 @@ window.atualizarDashboard = async function () {
         htmlGerado += `
                     <div class="col-md-3 col-6 mb-3">
                         <div class="card text-bg-light mb-3 shadow-sm border-0 h-100">
+                            <i class="fa-solid fa-box-open card-icon-bg card-icon-bg-reverse"></i>
                             <div class="card-body">
                                 <h6 class="card-subtitle mb-2 text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">
                                     ${st.descricao}
