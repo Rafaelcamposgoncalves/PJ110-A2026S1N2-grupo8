@@ -1,4 +1,5 @@
 <?php
+// routes/web.php
 
 $subRecurso = $uri[1] ?? null;
 
@@ -15,6 +16,18 @@ if ($recurso === 'login') {
     exit;
 }
 
+/* RECUPERAR SENHA (TELA VISUAL .HTML) */
+if ($recurso === 'recuperar-senha') {
+    require_once 'views/auth/recuperar.html';
+    exit;
+}
+
+/* DISPARAR RECUPERAÇÃO (BACK-END DE ENVIO VIA API) */
+if ($recurso === 'disparar-recuperacao') {
+    require_once 'disparar-recuperacao.php'; 
+    exit;
+}
+
 /* DASHBOARD */
 if ($recurso === 'dashboard') {
     auth();
@@ -25,7 +38,7 @@ if ($recurso === 'dashboard') {
 /* SHAPER */
 if ($recurso === 'shaper') {
     auth();
-    require_once 'views/shaper/index.hmtl';
+    require_once 'views/shaper/index.html'; // Corrigido erro de digitação de .hmtl para .html
     exit;
 }
 

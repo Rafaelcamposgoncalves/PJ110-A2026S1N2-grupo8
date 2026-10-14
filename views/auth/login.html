@@ -4,22 +4,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login</title>
+  <title>Login - Oficina de Laminação</title>
   <!-- Bootstrap CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <!-- Ajuste 1: CSS dinâmico -->
-  <link rel="stylesheet" href="<?php echo $base; ?>/public/css/login.css">
 </head>
 
 <body>
-  <!-- AJUSTE 2: Define a variável BASE_URL para o login.js usar -->
+  <!-- Define a variável BASE_URL para o login.js usar -->
   <script>
     window.BASE_URL = window.location.origin + "<?php echo $base; ?>";
   </script>
 
-  <div class="container-fluid">
+  <!-- role="main" adicionado para critérios de acessibilidade web -->
+  <div class="container-fluid" role="main">
     <div class="row login-container">
       <!-- Coluna Esquerda (Imagem) -->
       <div class="col-md-6 d-none d-md-block left-side"></div>
@@ -28,22 +27,31 @@
       <div class="col-md-6 d-flex align-items-center justify-content-center bg-light right-side">
         <div class="card shadow p-4 pb-5" style="width: 100%; max-width: 400px;">
           <h3 class="text-center mb-4 text-body-tertiary">
-            <i class="fa-solid fa-lock"></i>
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
           </h3>
 
-          <!-- Mensagem de erro -->
-          <div id="alerta" class="alert alert-danger d-none"></div>
+          <!-- Mensagem de erro - aria-live garante que leitores de tela leiam o erro assim que ele aparecer -->
+          <div id="alerta" class="alert alert-danger d-none" role="alert" aria-live="assertive"></div>
 
           <div class="mb-3">
-            <label class="form-label">Usuário</label>
-            <input type="text" id="usuario" class="form-control" placeholder="Digite seu usuário">
+            <label for="usuario" class="form-label">Usuário</label>
+            <input type="text" id="usuario" class="form-control" placeholder="Digite seu usuário" required aria-required="true">
           </div>
           <div class="mb-3">
-            <label class="form-label">Senha</label>
-            <input type="password" id="senha" class="form-control" placeholder="Digite sua senha">
+            <label for="senha" class="form-label">Senha</label>
+            <input type="password" id="senha" class="form-control" placeholder="Digite sua senha" required aria-required="true">
           </div>
+
+          <!-- Link de Recuperação de Acesso/Senha integrado por API -->
+          <div class="mb-4 text-end">
+            <a href="recuperar-senha" class="text-decoration-none small text-secondary">
+              Esqueci minha senha
+            </a>
+          </div>
+
+
           <div class="d-grid">
-            <button id="btnLogin" class="btn btn-primary" onclick="login()">
+            <button id="btnLogin" class="btn btn-primary" onclick="login()" aria-label="Entrar no sistema">
               Entrar
             </button>
           </div>
@@ -51,9 +59,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Ajuste 3: JS dinâmico -->
-  <script src="<?php echo $base; ?>/public/js/login.js"></script>
 </body>
 
 </html>

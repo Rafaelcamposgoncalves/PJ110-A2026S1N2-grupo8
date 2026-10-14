@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recuperar Acesso - Oficina de Laminação</title>
+
+  <!-- CSS das bibliotecas via CDN (Não depende de nenhuma variável PHP) -->
+  <link href="https://jsdelivr.net" rel="stylesheet">
+  <link rel="stylesheet" href="https://cloudflare.com">
+
+  <!-- CSS padrão do seu projeto -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light d-flex align-items-center justify-content-center vh-100">
+
+  <div class="container" role="main">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="card shadow p-4 pb-5">
+          <h3 class="text-center mb-3 text-body-secondary">Recuperar Acesso</h3>
+          <p class="text-muted text-center small mb-4">Insira o e-mail cadastrado na oficina para receber o link de redefinição de senha.</p>
+
+          <!-- O formulário envia os dados para a rota web pura tratada pelo index.php -->
+          <form action="disparar-recuperacao" method="POST">
+            <div class="mb-4">
+              <label for="email" class="form-label">E-mail Corporativo</label>
+              <input type="email" id="email" name="email" class="form-control" placeholder="exemplo@oficina.com.br" required aria-required="true">
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary" aria-label="Enviar link de recuperação por e-mail">
+                Enviar Link de Recuperação
+              </button>
+              <a href="login.html" class="btn btn-link small text-secondary text-decoration-none">
+                Voltar para o Login
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
